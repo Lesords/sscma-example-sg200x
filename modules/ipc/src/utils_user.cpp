@@ -5,12 +5,13 @@
 #include <vector>
 
 #include "HttpServer.h"
+#include "global_cfg.h"
 #include "utils_user.h"
 
-std::string g_sUserName;
-std::string g_sPassword;
+static std::string g_sUserName;
+static std::string g_sPassword;
 
-int getUserName()
+static int getUserName()
 {
     char username[16];
     struct passwd* pw = getpwuid(getuid());
@@ -19,10 +20,11 @@ int getUserName()
         strncpy(username, pw->pw_name, sizeof(username));
     } else {
         perror("getpwuid");
-        return 1;
+        return -1;
     }
 
     g_sUserName.assign(username);
+    return 0;
 }
 
 int queryUserInfo(HttpRequest* req, HttpResponse* resp)
@@ -32,6 +34,7 @@ int queryUserInfo(HttpRequest* req, HttpResponse* resp)
     User["msg"] = "";
 
     getUserName();
+    printf("%s, %s\n", g_sUserName.c_str(), g_sPassword.c_str());
 
     hv::Json data;
     data["userName"] = g_sUserName;
@@ -41,9 +44,9 @@ int queryUserInfo(HttpRequest* req, HttpResponse* resp)
     char info[128];
     std::vector<hv::Json> sshkeyList;
 
-    fp = popen("/mnt/usertool.sh query_key", "r");
+    fp = popen(SCRIPT_USER_SSH, "r");
     if (fp == NULL) {
-        printf("Failed to run /mnt/usertool.sh query_key\n");
+        printf("Failed to run %s\n", SCRIPT_USER_SSH);
     }
 
     while (fgets(info, sizeof(info) - 1, fp) != NULL) {
@@ -60,13 +63,10 @@ int queryUserInfo(HttpRequest* req, HttpResponse* resp)
         sshkey["latestUsedTime"] = "20240101";
         sshkeyList.push_back(sshkey);
     }
-
-    fclose(fp);
+    pclose(fp);
 
     data["sshkeyList"] = hv::Json(sshkeyList);
     User["data"] = data;
-
-    // std::cout << "result: " << User.dump(2) << "\n";
 
     return resp->Json(User);
 }
@@ -77,19 +77,19 @@ int updateUserName(HttpRequest* req, HttpResponse* resp)
     std::cout << "userName: " << req->GetString("userName") << "\n";
 
     FILE* fp;
-    char info[128];
-    char cmd[128] = "/mnt/usertool.sh name ";
+    char cmd[128] = SCRIPT_USER_NAME;
 
     strcat(cmd, g_sUserName.c_str());
     strcat(cmd, " ");
     strcat(cmd, req->GetString("userName").c_str());
-
     printf("cmd: %s\n", cmd);
+
     fp = popen(cmd, "r");
     if (fp == NULL) {
         printf("Failed to run %s list\n", cmd);
         return -1;
     }
+    pclose(fp);
 
     hv::Json User;
     User["code"] = 0;
@@ -102,18 +102,18 @@ int updateUserName(HttpRequest* req, HttpResponse* resp)
 int updatePassword(HttpRequest* req, HttpResponse* resp)
 {
     std::cout << "\nupdate Password operation...\n";
-    std::cout << "oldPassword: " << req->GetString("oldPassword") << "\n";
-    std::cout << "newPassword: " << req->GetString("newPassword") << "\n";
+    // std::cout << "oldPassword: " << req->GetString("oldPassword") << "\n";
+    // std::cout << "newPassword: " << req->GetString("newPassword") << "\n";
 
     FILE* fp;
     char info[128];
-    char cmd[128] = "/mnt/usertool.sh passwd ";
+    char cmd[128] = SCRIPT_USER_PWD;
 
     strcat(cmd, req->GetString("oldPassword").c_str());
     strcat(cmd, " ");
     strcat(cmd, req->GetString("newPassword").c_str());
-
     printf("cmd: %s\n", cmd);
+
     fp = popen(cmd, "r");
     if (fp == NULL) {
         printf("Failed to run %s list\n", cmd);
@@ -136,6 +136,7 @@ int updatePassword(HttpRequest* req, HttpResponse* resp)
             }
         }
     }
+    pclose(fp);
 
     return resp->Json(User);
 }

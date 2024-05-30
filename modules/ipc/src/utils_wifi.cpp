@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "HttpServer.h"
+#include "global_cfg.h"
 #include "utils_wifi.h"
 
 typedef struct _WIFI_INFO_S {
@@ -23,9 +24,9 @@ static int getWifiInfo(std::vector<std::string>& wifiStatus)
     FILE* fp;
     char info[128];
 
-    fp = popen("/mnt/wifitool.sh status", "r");
+    fp = popen(SCRIPT_WIFI_STATUS, "r");
     if (fp == NULL) {
-        printf("Failed to run /mnt/wifitool.sh status\n");
+        printf("Failed to run `%s`\n", SCRIPT_WIFI_STATUS);
         return -1;
     }
 
@@ -48,9 +49,9 @@ static int getWifiList()
     char info[128];
     std::vector<std::vector<std::string>> wifiList;
 
-    fp = popen("/mnt/wifitool.sh scan", "r");
+    fp = popen(SCRIPT_WIFI_SCAN, "r");
     if (fp == NULL) {
-        printf("Failed to run /mnt/wifitool.sh scan\n");
+        printf("Failed to run `%s`\n", SCRIPT_WIFI_SCAN);
         return -1;
     }
 
@@ -85,9 +86,9 @@ static int updateConnectedWifiInfo()
 
     std::cout << "updateConnectedWifiInfo operation\n";
 
-    fp = popen("/mnt/wifitool.sh list", "r");
+    fp = popen(SCRIPT_WIFI_LIST, "r");
     if (fp == NULL) {
-        printf("Failed to run /mnt/wifitool.sh list\n");
+        printf("Failed to run `%s`\n", SCRIPT_WIFI_LIST);
         return -1;
     }
 
@@ -218,14 +219,14 @@ int connectWiFi(HttpRequest* req, HttpResponse* resp)
     int id;
     FILE* fp;
     char info[128];
-    char cmd[128] = "/mnt/wifitool.sh ";
+    char cmd[128] = "";
 
     if (req->GetString("password").empty()) {
-        strcat(cmd, "select ");
+        strcpy(cmd, SCRIPT_WIFI_SELECT);
         id = g_wifiInfo[req->GetString("ssid")].id;
         strcat(cmd, std::to_string(id).c_str());
     } else {
-        strcat(cmd, "connect ");
+        strcpy(cmd, SCRIPT_WIFI_CONNECT);
         strcat(cmd, req->GetString("ssid").c_str());
         strcat(cmd, " ");
         strcat(cmd, req->GetString("password").c_str());
@@ -273,7 +274,7 @@ int disconnectWiFi(HttpRequest* req, HttpResponse* resp)
     int id = g_wifiInfo[req->GetString("ssid")].id;
     FILE* fp;
     char info[128];
-    char cmd[128] = "/mnt/wifitool.sh disconnect ";
+    char cmd[128] = SCRIPT_WIFI_DISCONNECT;
 
     printf("id: %d\n", id);
 
@@ -359,7 +360,7 @@ int forgetWiFi(HttpRequest* req, HttpResponse* resp)
     int id;
     FILE* fp;
     char info[128];
-    char cmd[128] = "/mnt/wifitool.sh remove ";
+    char cmd[128] = SCRIPT_WIFI_REMOVE;
 
     id = g_wifiInfo[req->GetString("ssid")].id;
     strcat(cmd, std::to_string(id).c_str());

@@ -17,4 +17,23 @@
 /* WebSocket */
 #define WS_PORT 8000
 
+/* usertool.sh*/
+#define SCRIPT_USER(action) ("/mnt/usertool.sh" \
+                             " " #action " ")
+#define SCRIPT_USER_NAME SCRIPT_USER(name)
+#define SCRIPT_USER_PWD SCRIPT_USER(passwd)
+#define SCRIPT_USER_SSH SCRIPT_USER(query_key)
+
+/* wifitool.sh*/
+#define SCRIPT_WIFI(action) ("/mnt/wifitool.sh" \
+                             " " #action " ")
+#define SCRIPT_WIFI_START SCRIPT_WIFI(start)
+#define SCRIPT_WIFI_SCAN SCRIPT_WIFI(scan)
+#define SCRIPT_WIFI_LIST SCRIPT_WIFI(list)
+#define SCRIPT_WIFI_CONNECT SCRIPT_WIFI(connect)
+#define SCRIPT_WIFI_SELECT SCRIPT_WIFI(select)
+#define SCRIPT_WIFI_DISCONNECT SCRIPT_WIFI(disconnect)
+#define SCRIPT_WIFI_STATUS SCRIPT_WIFI(status)
+#define SCRIPT_WIFI_REMOVE SCRIPT_WIFI(remove)
+
 #endif

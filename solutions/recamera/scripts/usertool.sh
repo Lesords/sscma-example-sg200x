@@ -38,7 +38,12 @@ cal_key() {
 }
 
 query_key() {
-    filename=/root/.ssh/authorized_keys
+    filename="/root/.ssh/authorized_keys"
+    if [ ! -f "$filename" ]; then
+    mkdir -p /root/.ssh
+    touch $filename
+    fi
+
     while IFS= read -r line; do
         cal_key "$line"
     done < "$filename"

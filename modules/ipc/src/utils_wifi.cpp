@@ -326,12 +326,33 @@ int switchWiFi(HttpRequest* req, HttpResponse* resp)
 
 int getWifiStatus(HttpRequest* req, HttpResponse* resp)
 {
-    hv::Json response;
+    FILE* fp;
+    char info[128];
+    hv::Json response, data;
+
     response["code"] = 0;
     response["msg"] = "";
 
-    hv::Json data;
-    data["status"] = 2;
+    fp = popen(SCRIPT_WIFI_STATE, "r");
+    if (fp == NULL) {
+        printf("Failed to run `%s`\n", SCRIPT_WIFI_STATE);
+        return -1;
+    }
+
+    if (fgets(info, sizeof(info) - 1, fp) != NULL) {
+        std::string s(info);
+        if (s.back() == '\n') {
+            s.erase(s.size() - 1);
+        }
+
+        if (s.compare("COMPLETED") == 0) {
+            data["status"] = 1;
+        } else if (s.compare("INACTIVE") == 0) {
+            data["status"] = 2;
+        }
+    }
+
+    pclose(fp);
     response["data"] = data;
 
     return resp->Json(response);

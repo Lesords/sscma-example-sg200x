@@ -50,6 +50,14 @@ start)
     wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf
     ;;
 
+stop)
+    kill -9 `pidof wpa_supplicant`
+    ;;
+
+state)
+    wpa_cli -i wlan0 status | grep "^wpa_state" | awk -F= '{print $2}'
+    ;;
+
 scan)
     scan_wifi
     ;;

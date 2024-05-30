@@ -35,5 +35,6 @@
 #define SCRIPT_WIFI_DISCONNECT SCRIPT_WIFI(disconnect)
 #define SCRIPT_WIFI_STATUS SCRIPT_WIFI(status)
 #define SCRIPT_WIFI_REMOVE SCRIPT_WIFI(remove)
+#define SCRIPT_WIFI_STATE SCRIPT_WIFI(state)
 
 #endif

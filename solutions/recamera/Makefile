@@ -43,6 +43,7 @@ install:
 	$(eval OUT_DIR := $(APP_INSTALL_DIR)/mnt)
 	@mkdir -p $(OUT_DIR)
 	@cp -rf $(SRCTREE)/solutions/$(PROJECT)/www/ $(OUT_DIR)/
+	@cp -rf $(SRCTREE)/solutions/$(PROJECT)/scripts/* $(OUT_DIR)/
 
 	@echo "INFO: installing ini..."
 	$(eval OUT_DIR := $(APP_INSTALL_DIR)/mnt/data)

@@ -1,13 +1,29 @@
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <stdio.h>
+#include <string>
 
 #include "HttpServer.h"
+#include "global_cfg.h"
 #include "utils_device.h"
 
-std::string g_sDeviceName = "reCamera";
-std::string g_serverUrl = "https://github.com/Seeed-Studio/reCamera";
-int g_channel = 0;
 int g_progress = 0;
+
+#include <fstream>
+#include <iterator>
+#include <string>
+
+static std::string getFileContent(const std::string& path, const std::string& defaultname = "EmptyContent")
+{
+    std::ifstream ifs(path);
+    if (!ifs.is_open()) {
+        // 文件无法打开，返回默认值
+        return defaultname;
+    }
+    // 读取文件内容并返回
+    return std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+}
 
 int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
 {
@@ -15,21 +31,42 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
     device["code"] = 0;
     device["msg"] = "";
 
+    std::string os_version = getFileContent(PATH_ISSUE);
+    std::string os = "Null", version = "Null";
+    size_t pos = os_version.find(',');
+    if (pos != std::string::npos) {
+        os = os_version.substr(0, pos);
+        version = os_version.substr(pos + 1);
+    }
+
+    std::string ch_url = getFileContent(PATH_UPGRADE_URL);
+    std::string ch = "0", url = "";
+    pos = ch_url.find(',');
+    if (pos != std::string::npos) {
+        ch = ch_url.substr(0, pos);
+        url = ch_url.substr(pos + 1);
+    }
+
     hv::Json data;
-    data["deviceName"] = g_sDeviceName;
+    data["deviceName"] = getFileContent(PATH_DEVICE_NAME);
     data["ip"] = "192.168.120.99";
     data["mask"] = "255.255.255.0";
     data["gateway"] = "192.168.120.1";
     data["dns"] = "192.168.120.1";
-    data["channel"] = g_channel;
-    data["serverUrl"] = g_serverUrl;
+    data["channel"] = std::stoi(ch);
+    data["serverUrl"] = url;
     data["cpu"] = "sg2002";
     data["ram"] = 128;
     data["npu"] = 2;
-    data["osName"] = "reCamera";
-    data["osVersion"] = "1.0.0";
+    data["osName"] = os;
+    data["osVersion"] = version;
 
     device["data"] = data;
+
+    // output
+    std::cout << "Device name: " << data["deviceName"] << std::endl;
+    std::cout << "OS,Version: " << os_version << std::endl;
+    std::cout << "Channel,Url: " << ch_url << std::endl;
 
     return resp->Json(device);
 }
@@ -38,8 +75,6 @@ int updateDeviceName(HttpRequest* req, HttpResponse* resp)
 {
     std::cout << "\nupdate Device Name operation...\n";
     std::cout << "deviceName: " << req->GetString("deviceName") << "\n";
-
-    g_sDeviceName = req->GetString("deviceName");
 
     hv::Json response;
 
@@ -53,9 +88,12 @@ int updateDeviceName(HttpRequest* req, HttpResponse* resp)
 int updateChannel(HttpRequest* req, HttpResponse* resp)
 {
     hv::Json response;
+    std::string str_ch = req->GetString("channel");
+    std::string str_url = req->GetString("serverUrl");
+
     std::cout << "\nupdate channel operation...\n";
-    std::cout << "channel: " << req->GetString("channel") << "\n";
-    std::cout << "serverUrl: " << req->GetString("serverUrl") << "\n";
+    std::cout << "channel: " << str_ch << "\n";
+    std::cout << "serverUrl: " << str_url << "\n";
 
     if (req->GetString("channel").empty()) {
         response["code"] = 1109;
@@ -65,10 +103,11 @@ int updateChannel(HttpRequest* req, HttpResponse* resp)
         return resp->Json(response);
     }
 
-    g_channel = std::stoi(req->GetString("channel"));
-
-    if (!g_channel) {
-        g_serverUrl = req->GetString("serverUrl");
+    std::ofstream outfile(PATH_UPGRADE_URL);
+    if (outfile.is_open()) {
+        outfile << str_ch << "," << str_url;
+        outfile.close();
+        std::cout << "Write Success: " << PATH_UPGRADE_URL << std::endl;
     }
 
     response["code"] = 0;

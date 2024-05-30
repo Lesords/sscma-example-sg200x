@@ -91,11 +91,17 @@ static void register_Device_Api(HttpService& router)
 
 static void register_WebSocket(HttpService& router)
 {
-    router.GET("/cgi/get_ws_addr.cgi", [](HttpRequest* req, HttpResponse* resp) {
-        static char data[64] = "";
-        snprintf(data, sizeof(data), "ws://%s:%d", req->host.c_str(), WS_PORT);
-        APP_PROF_LOG_PRINT(LEVEL_INFO, "get_ws_addr: %s\n", data);
-        return resp->Data(data, sizeof(data));
+    router.GET("/api/deviceMgr/getCameraWebsocketUrl", [](HttpRequest* req, HttpResponse* resp) {
+        hv::Json res;
+        res["code"] = 0;
+        res["msg"] = "";
+        hv::Json data;
+        data["websocketUrl"] = "ws://" + req->host + ":" + std::to_string(WS_PORT);
+        res["data"] = data;
+
+        std::cout << "WebSocket:" << data["websocketUrl"] << "\n";
+
+        return resp->Json(res);
     });
 }
 

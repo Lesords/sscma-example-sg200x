@@ -47,8 +47,7 @@ static void register_Httpd_Redirect(HttpService& router)
     router.GET("/*.txt", [](HttpRequest* req, HttpResponse* resp) { // windows
         // resp->File(WWW("err.html"));
         std::cout << "\n[/*.txt]current url: " << req->Url() << "\n";
-        std::cout << "-> redirect to \n"
-                  << REDIRECT_URL << REDIRECT_URL << "\n";
+        std::cout << "-> redirect to " << REDIRECT_URL << "\n";
 
         return resp->Redirect(REDIRECT_URL);
     });

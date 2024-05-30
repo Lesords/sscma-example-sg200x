@@ -11,11 +11,10 @@
 
 /* HTTPD */
 #define HTTPD_PORT 80
-#define WWW(file) ("/mnt/www/" file)
+#define WWW(file) ("/mnt/dist/" file)
+#define REDIRECT_URL "http://192.168.16.1/index.html"
 
 /* WebSocket */
 #define WS_PORT 8000
-
-#define REDIRECT_URL "http://192.168.16.1/index.html"
 
 #endif

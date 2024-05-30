@@ -39,10 +39,10 @@ install:
 	@mkdir -p $(OUT_DIR)
 	@cp -rf $(TARGET) $(OUT_DIR)/
 
-	@echo "INFO: installing www..."
+	@echo "INFO: installing dist..."
 	$(eval OUT_DIR := $(APP_INSTALL_DIR)/mnt)
 	@mkdir -p $(OUT_DIR)
-	@cp -rf $(SRCTREE)/solutions/$(PROJECT)/www/ $(OUT_DIR)/
+	@cp -rf $(SRCTREE)/solutions/$(PROJECT)/dist/ $(OUT_DIR)/
 	@cp -rf $(SRCTREE)/solutions/$(PROJECT)/scripts/* $(OUT_DIR)/
 
 	@echo "INFO: installing ini..."

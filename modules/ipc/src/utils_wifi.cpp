@@ -1,11 +1,11 @@
-#include <stdio.h>
 #include <iostream>
-#include <vector>
 #include <map>
-#include "HttpServer.h"
-#include "app_ipc_wifi.h"
-
+#include <stdio.h>
 #include <string.h>
+#include <vector>
+
+#include "HttpServer.h"
+#include "utils_wifi.h"
 
 typedef struct _WIFI_INFO_S {
     int id;
@@ -18,8 +18,9 @@ std::map<std::string, WIFI_INFO_S> g_wifiInfo;
 std::string g_currentWifi;
 int g_wifiMode = 0;
 
-static int getWifiInfo(std::vector<std::string> &wifiStatus) {
-    FILE *fp;
+static int getWifiInfo(std::vector<std::string>& wifiStatus)
+{
+    FILE* fp;
     char info[128];
 
     fp = popen("/mnt/wifitool.sh status", "r");
@@ -41,8 +42,9 @@ static int getWifiInfo(std::vector<std::string> &wifiStatus) {
     return 0;
 }
 
-static int getWifiList() {
-    FILE *fp;
+static int getWifiList()
+{
+    FILE* fp;
     char info[128];
     std::vector<std::vector<std::string>> wifiList;
 
@@ -55,7 +57,7 @@ static int getWifiList() {
     while (fgets(info, sizeof(info) - 1, fp) != NULL) {
         std::vector<std::string> wifi;
 
-        char *token = strtok(info, " ");
+        char* token = strtok(info, " ");
         while (token != NULL) {
             wifi.push_back(std::string(token));
             token = strtok(NULL, " ");
@@ -76,8 +78,9 @@ static int getWifiList() {
     return 0;
 }
 
-static int updateConnectedWifiInfo() {
-    FILE *fp;
+static int updateConnectedWifiInfo()
+{
+    FILE* fp;
     char info[128];
 
     std::cout << "updateConnectedWifiInfo operation\n";
@@ -91,7 +94,7 @@ static int updateConnectedWifiInfo() {
     while (fgets(info, sizeof(info) - 1, fp) != NULL) {
         std::vector<std::string> wifi;
 
-        char *token = strtok(info, " ");
+        char* token = strtok(info, " ");
         while (token != NULL) {
             wifi.push_back(std::string(token));
             token = strtok(NULL, " ");
@@ -107,8 +110,8 @@ static int updateConnectedWifiInfo() {
     return 0;
 }
 
-int queryWiFiInfo(HttpRequest* req, HttpResponse* resp) {
-
+int queryWiFiInfo(HttpRequest* req, HttpResponse* resp)
+{
     std::vector<std::string> wifiStatus;
 
     if (getWifiInfo(wifiStatus) != 0) {
@@ -144,8 +147,8 @@ int queryWiFiInfo(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(response);
 }
 
-int scanWiFi(HttpRequest* req, HttpResponse* resp) {
-
+int scanWiFi(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\nscan WiFi operation...\n";
     std::cout << "scanTime: " << req->GetString("scanTime") << "\n";
 
@@ -168,7 +171,7 @@ int scanWiFi(HttpRequest* req, HttpResponse* resp) {
 
     std::cout << "current wifi: =" << g_currentWifi << "=\n";
 
-    for (auto wifi: g_wifiList) {
+    for (auto wifi : g_wifiList) {
         wifiInfo.clear();
         wifiInfo["ssid"] = wifi[0];
         wifiInfo["auth"] = stoi(wifi[2]);
@@ -205,15 +208,15 @@ int scanWiFi(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(response);
 }
 
-int connectWiFi(HttpRequest* req, HttpResponse* resp) {
-
+int connectWiFi(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\nconnect WiFi...\n";
     std::cout << "ssid: " << req->GetString("ssid") << "\n";
     std::cout << "ssid: " << req->GetString("password") << "\n";
 
     std::string msg;
     int id;
-    FILE *fp;
+    FILE* fp;
     char info[128];
     char cmd[128] = "/mnt/wifitool.sh ";
 
@@ -254,21 +257,21 @@ int connectWiFi(HttpRequest* req, HttpResponse* resp) {
     } else {
         response["code"] = 0;
         response["msg"] = "";
-        g_wifiInfo[req->GetString("ssid")] = {id, 1, 1};
+        g_wifiInfo[req->GetString("ssid")] = { id, 1, 1 };
     }
     response["data"] = hv::Json({});
 
     return resp->Json(response);
 }
 
-int disconnectWiFi(HttpRequest* req, HttpResponse* resp) {
-
+int disconnectWiFi(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\ndisconnect WiFi...\n";
     std::cout << "ssid: " << req->GetString("ssid") << "\n";
 
     std::string msg;
     int id = g_wifiInfo[req->GetString("ssid")].id;
-    FILE *fp;
+    FILE* fp;
     char info[128];
     char cmd[128] = "/mnt/wifitool.sh disconnect ";
 
@@ -303,8 +306,8 @@ int disconnectWiFi(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(response);
 }
 
-int switchWiFi(HttpRequest* req, HttpResponse* resp) {
-
+int switchWiFi(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\nswitch WiFi operation...\n";
     std::cout << "mode: " << req->GetString("mode") << "\n";
 
@@ -320,8 +323,8 @@ int switchWiFi(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(response);
 }
 
-int getWifiStatus(HttpRequest* req, HttpResponse* resp) {
-
+int getWifiStatus(HttpRequest* req, HttpResponse* resp)
+{
     hv::Json response;
     response["code"] = 0;
     response["msg"] = "";
@@ -333,8 +336,8 @@ int getWifiStatus(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(response);
 }
 
-int autoConnectWiFi(HttpRequest* req, HttpResponse* resp) {
-
+int autoConnectWiFi(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\nauto Connect operation...\n";
     std::cout << "ssid: " << req->GetString("ssid") << "\n";
     std::cout << "mode: " << req->GetString("mode") << "\n";
@@ -347,14 +350,14 @@ int autoConnectWiFi(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(response);
 }
 
-int forgetWiFi(HttpRequest* req, HttpResponse* resp) {
-
+int forgetWiFi(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\nforget WiFi operation...\n";
     std::cout << "ssid: " << req->GetString("ssid") << "\n";
 
     std::string msg;
     int id;
-    FILE *fp;
+    FILE* fp;
     char info[128];
     char cmd[128] = "/mnt/wifitool.sh remove ";
 

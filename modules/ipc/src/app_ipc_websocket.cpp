@@ -14,6 +14,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "cvi_venc.h"
 #include "libwebsockets.h"
 
 #include "app_ipc_websocket.h"

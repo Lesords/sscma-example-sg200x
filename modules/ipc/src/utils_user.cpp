@@ -1,17 +1,19 @@
-#include <stdio.h>
 #include <iostream>
-#include <vector>
-#include <unistd.h>
 #include <pwd.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <vector>
+
 #include "HttpServer.h"
-#include "app_ipc_user.h"
+#include "utils_user.h"
 
 std::string g_sUserName;
 std::string g_sPassword;
 
-int getUserName() {
+int getUserName()
+{
     char username[16];
-    struct passwd *pw = getpwuid(getuid());
+    struct passwd* pw = getpwuid(getuid());
 
     if (pw) {
         strncpy(username, pw->pw_name, sizeof(username));
@@ -23,8 +25,8 @@ int getUserName() {
     g_sUserName.assign(username);
 }
 
-int queryUserInfo(HttpRequest* req, HttpResponse* resp) {
-
+int queryUserInfo(HttpRequest* req, HttpResponse* resp)
+{
     hv::Json User;
     User["code"] = 0;
     User["msg"] = "";
@@ -35,7 +37,7 @@ int queryUserInfo(HttpRequest* req, HttpResponse* resp) {
     data["userName"] = g_sUserName;
     data["password"] = g_sPassword;
 
-    FILE *fp;
+    FILE* fp;
     char info[128];
     std::vector<hv::Json> sshkeyList;
 
@@ -69,13 +71,12 @@ int queryUserInfo(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(User);
 }
 
-int updateUserName(HttpRequest* req, HttpResponse* resp) {
-
+int updateUserName(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\nupdate UserName operation...\n";
     std::cout << "userName: " << req->GetString("userName") << "\n";
 
-
-    FILE *fp;
+    FILE* fp;
     char info[128];
     char cmd[128] = "/mnt/usertool.sh name ";
 
@@ -98,13 +99,13 @@ int updateUserName(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(User);
 }
 
-int updatePassword(HttpRequest* req, HttpResponse* resp) {
-
+int updatePassword(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\nupdate Password operation...\n";
     std::cout << "oldPassword: " << req->GetString("oldPassword") << "\n";
     std::cout << "newPassword: " << req->GetString("newPassword") << "\n";
 
-    FILE *fp;
+    FILE* fp;
     char info[128];
     char cmd[128] = "/mnt/usertool.sh passwd ";
 
@@ -139,8 +140,8 @@ int updatePassword(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(User);
 }
 
-int addSShkey(HttpRequest* req, HttpResponse* resp) {
-
+int addSShkey(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\nAdd ssh key operation...\n";
     std::cout << "name:" << req->GetString("name") << "\n";
     std::cout << "value: " << req->GetString("value") << "\n";
@@ -156,8 +157,8 @@ int addSShkey(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(response);
 }
 
-int deleteSShkey(HttpRequest* req, HttpResponse* resp) {
-
+int deleteSShkey(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\ndelete ssh key operation...\n";
     std::cout << "id: " << req->GetString("id") << "\n";
 

@@ -1,15 +1,16 @@
-#include <stdio.h>
 #include <iostream>
+#include <stdio.h>
+
 #include "HttpServer.h"
-#include "app_ipc_device.h"
+#include "utils_device.h"
 
 std::string g_sDeviceName = "reCamera";
 std::string g_serverUrl = "https://github.com/Seeed-Studio/reCamera";
 int g_channel = 0;
 int g_progress = 0;
 
-int queryDeviceInfo(HttpRequest* req, HttpResponse* resp) {
-
+int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
+{
     hv::Json device;
     device["code"] = 0;
     device["msg"] = "";
@@ -33,8 +34,8 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(device);
 }
 
-int updateDeviceName(HttpRequest* req, HttpResponse* resp) {
-
+int updateDeviceName(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\nupdate Device Name operation...\n";
     std::cout << "deviceName: " << req->GetString("deviceName") << "\n";
 
@@ -49,8 +50,8 @@ int updateDeviceName(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(response);
 }
 
-int updateChannel(HttpRequest* req, HttpResponse* resp) {
-
+int updateChannel(HttpRequest* req, HttpResponse* resp)
+{
     hv::Json response;
     std::cout << "\nupdate channel operation...\n";
     std::cout << "channel: " << req->GetString("channel") << "\n";
@@ -77,9 +78,8 @@ int updateChannel(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(response);
 }
 
-
-int setPower(HttpRequest* req, HttpResponse* resp) {
-
+int setPower(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\nset Power operation...\n";
     std::cout << "mode: " << req->GetString("mode") << "\n";
 
@@ -102,8 +102,8 @@ int setPower(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(response);
 }
 
-int updateSystem(HttpRequest* req, HttpResponse* resp) {
-
+int updateSystem(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\nstart to update System now...\n";
 
     // TODO
@@ -119,8 +119,8 @@ int updateSystem(HttpRequest* req, HttpResponse* resp) {
     return resp->Json(response);
 }
 
-int getUpdateProgress(HttpRequest* req, HttpResponse* resp) {
-
+int getUpdateProgress(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\nget Update Progress...\n";
 
     // TODO
@@ -132,14 +132,15 @@ int getUpdateProgress(HttpRequest* req, HttpResponse* resp) {
 
     hv::Json data;
     data["progress"] = g_progress;
-    if (g_progress < 100) g_progress += 10;
+    if (g_progress < 100)
+        g_progress += 10;
     response["data"] = data;
 
     return resp->Json(response);
 }
 
-int cancelUpdate(HttpRequest* req, HttpResponse* resp) {
-
+int cancelUpdate(HttpRequest* req, HttpResponse* resp)
+{
     std::cout << "\ncancel update...\n";
 
     // TODO

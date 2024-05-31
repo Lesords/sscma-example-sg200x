@@ -11,9 +11,10 @@
 
 /* HTTPD */
 #define HTTPD_PORT 80
+#define TTYD_PORT 8080
 #define WWW(file) ("/mnt/dist/" file)
 #define REDIRECT_URL "http://192.168.16.1/index.html"
-#define DEFAULT_UPGRADE_URL "https://github.com/Seeed-Studio/reCamera"
+#define DEFAULT_UPGRADE_URL "https://github.com/Seeed-Studio/reCamera/releases/latest"
 
 /* WebSocket */
 #define WS_PORT 8000

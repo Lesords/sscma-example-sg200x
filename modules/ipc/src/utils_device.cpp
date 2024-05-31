@@ -55,17 +55,20 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
 
     hv::Json data;
     data["deviceName"] = readFile(PATH_DEVICE_NAME);
-    data["ip"] = "192.168.120.99";
+    data["ip"] = req->host;
     data["mask"] = "255.255.255.0";
-    data["gateway"] = "192.168.120.1";
-    data["dns"] = "192.168.120.1";
+    data["gateway"] = "-";
+    data["dns"] = "-";
     data["channel"] = std::stoi(ch);
     data["serverUrl"] = url;
+    data["officialUrl"] = DEFAULT_UPGRADE_URL;
     data["cpu"] = "sg2002";
     data["ram"] = 128;
     data["npu"] = 2;
     data["osName"] = os;
     data["osVersion"] = version;
+    data["osUpdateTime"] = "2024.01.01";
+    data["terminalPort"] = TTYD_PORT;
 
     device["data"] = data;
 

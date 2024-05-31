@@ -10,11 +10,7 @@
 
 int g_progress = 0;
 
-#include <fstream>
-#include <iterator>
-#include <string>
-
-static std::string getFileContent(const std::string& path, const std::string& defaultname = "EmptyContent")
+static std::string readFile(const std::string& path, const std::string& defaultname = "EmptyContent")
 {
     std::ifstream ifs(path);
     if (!ifs.is_open()) {
@@ -25,13 +21,23 @@ static std::string getFileContent(const std::string& path, const std::string& de
     return std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
 }
 
+static std::string writeFile(const std::string& path, const std::string& strWrite)
+{
+    std::ofstream outfile(path);
+    if (outfile.is_open()) {
+        outfile << strWrite;
+        outfile.close();
+        std::cout << "Write Success: " << path << std::endl;
+    }
+}
+
 int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
 {
     hv::Json device;
     device["code"] = 0;
     device["msg"] = "";
 
-    std::string os_version = getFileContent(PATH_ISSUE);
+    std::string os_version = readFile(PATH_ISSUE);
     std::string os = "Null", version = "Null";
     size_t pos = os_version.find(',');
     if (pos != std::string::npos) {
@@ -39,7 +45,7 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
         version = os_version.substr(pos + 1);
     }
 
-    std::string ch_url = getFileContent(PATH_UPGRADE_URL);
+    std::string ch_url = readFile(PATH_UPGRADE_URL);
     std::string ch = "0", url = "";
     pos = ch_url.find(',');
     if (pos != std::string::npos) {
@@ -48,7 +54,7 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
     }
 
     hv::Json data;
-    data["deviceName"] = getFileContent(PATH_DEVICE_NAME);
+    data["deviceName"] = readFile(PATH_DEVICE_NAME);
     data["ip"] = "192.168.120.99";
     data["mask"] = "255.255.255.0";
     data["gateway"] = "192.168.120.1";
@@ -73,11 +79,13 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
 
 int updateDeviceName(HttpRequest* req, HttpResponse* resp)
 {
+    std::string dev_name = req->GetString("deviceName");
+
     std::cout << "\nupdate Device Name operation...\n";
-    std::cout << "deviceName: " << req->GetString("deviceName") << "\n";
+    std::cout << "deviceName: " << dev_name << "\n";
+    writeFile(PATH_DEVICE_NAME, dev_name);
 
     hv::Json response;
-
     response["code"] = 0;
     response["msg"] = "";
     response["data"] = hv::Json({});
@@ -103,12 +111,7 @@ int updateChannel(HttpRequest* req, HttpResponse* resp)
         return resp->Json(response);
     }
 
-    std::ofstream outfile(PATH_UPGRADE_URL);
-    if (outfile.is_open()) {
-        outfile << str_ch << "," << str_url;
-        outfile.close();
-        std::cout << "Write Success: " << PATH_UPGRADE_URL << std::endl;
-    }
+    writeFile(PATH_UPGRADE_URL, str_ch + "," + str_url);
 
     response["code"] = 0;
     response["msg"] = "";
@@ -141,6 +144,7 @@ int setPower(HttpRequest* req, HttpResponse* resp)
     return resp->Json(response);
 }
 
+/* upgrade */
 int updateSystem(HttpRequest* req, HttpResponse* resp)
 {
     std::cout << "\nstart to update System now...\n";

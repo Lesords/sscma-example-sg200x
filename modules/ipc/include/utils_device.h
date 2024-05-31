@@ -1,6 +1,8 @@
 #ifndef _APP_IPC_DEVICE_H_
 #define _APP_IPC_DEVICE_H_
 
+std::string readFile(const std::string& path, const std::string& defaultname = "EmptyContent");
+
 int queryDeviceInfo(HttpRequest* req, HttpResponse* resp);
 int updateDeviceName(HttpRequest* req, HttpResponse* resp);
 

@@ -21,6 +21,7 @@
 
 #define PATH_MODEL "/proc/device-tree/model"
 #define PATH_ISSUE "/etc/issue"
+#define PATH_SECRET "/etc/secret"
 #define PATH_DEVICE_NAME "/etc/device-name"
 #define PATH_UPGRADE_URL "/etc/upgrade"
 #define PATH_SSH_KEY_FILE "/root/.ssh/authorized_keys"

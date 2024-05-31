@@ -10,7 +10,7 @@
 
 int g_progress = 0;
 
-static std::string readFile(const std::string& path, const std::string& defaultname = "EmptyContent")
+std::string readFile(const std::string& path, const std::string& defaultname)
 {
     std::ifstream ifs(path);
     if (!ifs.is_open()) {

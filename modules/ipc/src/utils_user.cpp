@@ -9,6 +9,7 @@
 #include "HttpServer.h"
 #include "global_cfg.h"
 #include "utils_user.h"
+#include "utils_device.h"
 
 static std::string g_sUserName;
 static std::string g_sPassword;
@@ -37,6 +38,10 @@ int queryUserInfo(HttpRequest* req, HttpResponse* resp)
     User["msg"] = "";
 
     getUserName();
+    g_sPassword = readFile(PATH_SECRET);
+    if (g_sPassword.back() == '\n') {
+        g_sPassword.erase(g_sPassword.size() - 1);
+    }
     printf("%s, %s\n", g_sUserName.c_str(), g_sPassword.c_str());
 
     hv::Json data;
@@ -127,6 +132,14 @@ int updatePassword(HttpRequest* req, HttpResponse* resp)
     char info[128];
     char cmd[128] = SCRIPT_USER_PWD;
 
+    if (req->GetString("oldPassword").compare(g_sPassword) != 0) {
+        hv::Json User;
+        User["code"] = 1109;
+        User["msg"] = "Incorrect password";
+        User["data"] = hv::Json({});
+        return resp->Json(User);
+    }
+
     strcat(cmd, req->GetString("oldPassword").c_str());
     strcat(cmd, " ");
     strcat(cmd, req->GetString("newPassword").c_str());
@@ -152,6 +165,15 @@ int updatePassword(HttpRequest* req, HttpResponse* resp)
                 printf("error info: %s\n", info);
                 User["msg"] = std::string(info);
             }
+        } else {
+            char cmd[128] = "";
+
+            strcat(cmd, "echo ");
+            strcat(cmd, req->GetString("newPassword").c_str());
+            strcat(cmd, " > ");
+            strcat(cmd, PATH_SECRET);
+
+            system(cmd);
         }
     }
     pclose(fp);

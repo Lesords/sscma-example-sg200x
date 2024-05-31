@@ -23,6 +23,7 @@
 #define PATH_ISSUE "/etc/issue"
 #define PATH_DEVICE_NAME "/etc/device-name"
 #define PATH_UPGRADE_URL "/etc/upgrade"
+#define PATH_SSH_KEY_FILE "/root/.ssh/authorized_keys"
 
 /* usertool.sh*/
 #define SCRIPT_USER(action) ("/mnt/usertool.sh" \

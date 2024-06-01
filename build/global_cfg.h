@@ -11,17 +11,20 @@
 
 /* HTTPD */
 #define HTTPD_PORT 80
+#define TTYD_PORT 8080
 #define WWW(file) ("/mnt/dist/" file)
 #define REDIRECT_URL "http://192.168.16.1/index.html"
-#define DEFAULT_UPGRADE_URL "https://github.com/Seeed-Studio/reCamera"
+#define DEFAULT_UPGRADE_URL "https://github.com/Seeed-Studio/reCamera/releases/latest"
 
 /* WebSocket */
 #define WS_PORT 8000
 
 #define PATH_MODEL "/proc/device-tree/model"
 #define PATH_ISSUE "/etc/issue"
+#define PATH_SECRET "/etc/secret"
 #define PATH_DEVICE_NAME "/etc/device-name"
 #define PATH_UPGRADE_URL "/etc/upgrade"
+#define PATH_SSH_KEY_FILE "/root/.ssh/authorized_keys"
 
 /* usertool.sh*/
 #define SCRIPT_USER(action) ("/mnt/usertool.sh" \

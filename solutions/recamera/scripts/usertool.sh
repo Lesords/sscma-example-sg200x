@@ -12,7 +12,6 @@ change_passwd() {
     TEMP_FILE=$(mktemp)
     TEMP_ERR_FILE=$(mktemp)
     passwd > $TEMP_FILE 2> $TEMP_ERR_FILE << EOF
-$1
 $2
 $2
 EOF
@@ -33,15 +32,16 @@ EOF
 cal_key() {
     TEMP_FILE=$(mktemp)
     echo "$1" > $TEMP_FILE
-    ssh-keygen -lf $TEMP_FILE | awk '{print $2}'
+    ssh-keygen -lf $TEMP_FILE 2>/dev/null | awk '{printf $2 " "}'
+    cat $TEMP_FILE | awk -F# '{print $2 " " }'
     rm $TEMP_FILE
 }
 
 query_key() {
     filename="/root/.ssh/authorized_keys"
     if [ ! -f "$filename" ]; then
-    mkdir -p /root/.ssh
-    touch $filename
+        mkdir -p /root/.ssh
+        touch $filename
     fi
 
     while IFS= read -r line; do

@@ -140,6 +140,7 @@ int queryWiFiInfo(HttpRequest* req, HttpResponse* resp)
     wifiInfo["macAddres"] = wifiStatus[2];
     wifiInfo["ip"] = wifiStatus[3];
     wifiInfo["ipAssignment"] = 0;
+    wifiInfo["subnetMask"] = "255.255.255.0";
     wifiInfo["autoConnect"] = 0;
 
     data["wifiInfo"] = wifiInfo;
@@ -187,6 +188,7 @@ int scanWiFi(HttpRequest* req, HttpResponse* resp)
         wifiInfo["macAddress"] = wifi[3].substr(0, 17);
         wifiInfo["ip"] = "";
         wifiInfo["ipAssignment"] = "";
+        wifiInfo["subnetMask"] = "255.255.255.0";
         wifiInfo["dns1"] = "";
         wifiInfo["dns2"] = "";
         wifiInfo["autoConnect"] = 0;
@@ -197,6 +199,7 @@ int scanWiFi(HttpRequest* req, HttpResponse* resp)
     etherInfo["macAddres"] = "-";
     etherInfo["ip"] = "-";
     etherInfo["ipAssignment"] = 0;
+    etherInfo["subnetMask"] = "255.255.255.0";
     etherInfo["dns1"] = "-";
     etherInfo["dns2"] = "-";
     data["etherinfo"] = etherInfo;

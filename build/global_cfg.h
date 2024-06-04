@@ -46,4 +46,11 @@
 #define SCRIPT_WIFI_REMOVE SCRIPT_WIFI(remove)
 #define SCRIPT_WIFI_STATE SCRIPT_WIFI(state)
 
+/* upgrade.sh */
+#define SCRIPT_UPGRADE(action) ("/mnt/upgrade.sh" \
+                             " " #action " ")
+#define SCRIPT_UPGRADE_START SCRIPT_UPGRADE(start)
+#define SCRIPT_UPGRADE_QUERY SCRIPT_UPGRADE(query)
+#define SCRIPT_UPGRADE_STOP SCRIPT_UPGRADE(stop)
+
 #endif

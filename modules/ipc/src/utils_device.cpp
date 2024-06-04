@@ -167,9 +167,27 @@ int updateSystem(HttpRequest* req, HttpResponse* resp)
 {
     std::cout << "\nstart to update System now...\n";
 
-    // TODO
+    std::string ch_url = readFile(PATH_UPGRADE_URL), url = "";
+    std::string cmd = SCRIPT_UPGRADE_START;
+    int channel = 0;
+    size_t pos = ch_url.find(',');
+    if (pos != std::string::npos) {
+        channel = stoi(ch_url.substr(0, pos));
+        url = ch_url.substr(pos + 1);
+        if (url.back() == '\n') {
+            url.erase(url.size() - 1);
+        }
+    }
 
-    g_progress = 0;
+    if (channel == 0) {
+        cmd += " ";
+        cmd += DEFAULT_UPGRADE_URL;
+        cmd += " &";
+    } else {
+        cmd += " " + url + " &";
+    }
+
+    system(cmd.c_str());
 
     hv::Json response;
 
@@ -184,17 +202,37 @@ int getUpdateProgress(HttpRequest* req, HttpResponse* resp)
 {
     std::cout << "\nget Update Progress...\n";
 
-    // TODO
+    FILE* fp;
+    char info[128];
+    hv::Json response, data;
 
-    hv::Json response;
+    fp = popen(SCRIPT_UPGRADE_QUERY, "r");
+    if (fp == NULL) {
+        printf("Failed to run `%s`\n", SCRIPT_UPGRADE_QUERY);
+        return -1;
+    }
 
-    response["code"] = 0;
-    response["msg"] = "";
+    while (fgets(info, sizeof(info) - 1, fp) != NULL) {
+        std::string s(info);
+        if (s.back() == '\n') {
+            s.erase(s.size() - 1);
+        }
+        std::cout << "info: " << s << "\n";
+        size_t pos = s.find(',');
+        if (pos != std::string::npos) {
+            g_progress = stoi(s.substr(0, pos));
+            response["code"] = 1106;
+            response["msg"] = s.substr(pos + 1, s.size() - 1);
+        } else {
+            g_progress = stoi(s);
+            response["code"] = 0;
+            response["msg"] = "";
+        }
+    }
 
-    hv::Json data;
+    pclose(fp);
+
     data["progress"] = g_progress;
-    if (g_progress < 100)
-        g_progress += 10;
     response["data"] = data;
 
     return resp->Json(response);
@@ -204,8 +242,7 @@ int cancelUpdate(HttpRequest* req, HttpResponse* resp)
 {
     std::cout << "\ncancel update...\n";
 
-    // TODO
-    g_progress = 0;
+    system(SCRIPT_UPGRADE_STOP);
 
     hv::Json response;
 

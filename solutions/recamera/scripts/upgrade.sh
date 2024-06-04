@@ -2,9 +2,10 @@
 
 REPO_URL="https://github.com/Seeed-Studio/reCamera/releases/latest"
 UPGRADE_FILE=rawimages.zip
+BOOT_PARTITION=/dev/mmcblk0p1
 RECV_PARTITION=/dev/mmcblk0p5
-TARGET_PARTITION=/dev/mmcblk0p4
-FLAG_FILE=rootfs2
+ROOTFS1=mmcblk0p3
+ROOTFS2=mmcblk0p4
 ROOTFS_FILE=rootfs_ext4.emmc
 
 PERCENTAGE_FILE=/tmp/upgrade.percentage
@@ -37,8 +38,22 @@ function exit_upgrade() {
     exit $1
 }
 
+function write_upgrade_flag() {
+    echo $1 > $MOUNTPATH/boot
+    size=$(blockdev --getsize64 $BOOT_PARTITION)
+    offset=$(expr $size / 512)
+    offset=$(expr $offset - 1)
+    dd if=$MOUNTPATH/boot of=$BOOT_PARTITION bs=512 seek=$offset count=1 conv=notrunc
+}
+
 case $1 in
 start)
+    if [ -z "$2" ]; then
+        echo "Usage: $0 start <url>"
+        exit 1
+    fi
+    REPO_URL=$2
+
     if [ -f $CTRL_FILE ]; then
         echo "Upgrade is running."
         exit 1
@@ -106,6 +121,13 @@ start)
 
     write_percent
     echo "Step5: Check upgrade file"
+    if [ -f $full_path ]; then
+        PERCENTAGE=50
+    else
+        PERCENTAGE=50, "Package not found."
+        exit_upgrade 1
+    fi
+
     if unzip -l $full_path 2>&1 | grep -q "short read"; then
         PERCENTAGE=50,"Package corrupted."
         exit_upgrade 1
@@ -128,17 +150,24 @@ start)
 
     write_percent
     echo "Step7: Writing rootfs"
-    flag_file=$MOUNTPATH/$FLAG_FILE
-    if [ -f $flag_file ]; then
-        TARGET_PARTITION=/dev/mmcblk0p3
+    rootfs1=$(lsblk 2>/dev/null | grep " /" | grep "$ROOTFS1")
+    target=/dev/$ROOTFS2
+    if [ -z "$rootfs1" ]; then
+        rootfs2=$(lsblk 2>/dev/null | grep " /" | grep "$ROOTFS2")
+        if [ -z "$rootfs2" ]; then
+            PERCENTAGE=70, "Unknow rootfs partition."
+            exit_upgrade 1
+        else
+            target=/dev/$ROOTFS1
+        fi
     fi
-    echo "Target partition: $TARGET_PARTITION"
-    unzip -p $full_path $ROOTFS_FILE |  dd of="$TARGET_PARTITION" bs=1M
+    echo "target partition: $target"
+    unzip -p $full_path $ROOTFS_FILE | dd of=$target bs=1M
     PERCENTAGE=70
 
     write_percent
     echo "Step8: Calc partition md5"
-    partition_md5=$(dd if=$TARGET_PARTITION bs=1M count=200 2>/dev/null | md5sum | awk '{print $1}')
+    partition_md5=$(dd if=$target bs=1M count=200 2>/dev/null | md5sum | awk '{print $1}')
     echo "partition_md5=$partition_md5"
     PERCENTAGE=80
 
@@ -146,10 +175,10 @@ start)
     echo "Step9: Check partition md5"
     if [ "$partition_md5" == "$file_md5" ]; then
         PERCENTAGE=90
-        if [ $TARGET_PARTITION == "/dev/mmcblk0p4" ]; then
-            echo "1" > $flag_file
-        else
-            rm -rf $flag_file
+        if [ "$target" == "/dev/$ROOTFS1" ]; then
+            write_upgrade_flag "rfs1"
+        elif [ "$target" == "/dev/$ROOTFS2" ]; then
+            write_upgrade_flag "rfs2"
         fi
     else
         PERCENTAGE=90,"Partition md5 check failed."

@@ -44,6 +44,9 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
         os = os_version.substr(0, pos);
         version = os_version.substr(pos + 1);
     }
+    if (os_version.back() == '\n') {
+        os_version.erase(os_version.size() - 1);
+    }
 
     std::string ch_url = readFile(PATH_UPGRADE_URL);
     std::string ch = "0", url = "";
@@ -51,6 +54,9 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
     if (pos != std::string::npos) {
         ch = ch_url.substr(0, pos);
         url = ch_url.substr(pos + 1);
+    }
+    if (url.back() == '\n') {
+        url.erase(url.size() - 1);
     }
 
     hv::Json data;
@@ -101,12 +107,13 @@ int updateChannel(HttpRequest* req, HttpResponse* resp)
     hv::Json response;
     std::string str_ch = req->GetString("channel");
     std::string str_url = req->GetString("serverUrl");
+    std::string str_cmd;
 
     std::cout << "\nupdate channel operation...\n";
     std::cout << "channel: " << str_ch << "\n";
     std::cout << "serverUrl: " << str_url << "\n";
 
-    if (req->GetString("channel").empty()) {
+    if (str_ch.empty()) {
         response["code"] = 1109;
         response["msg"] = "value error";
         response["data"] = hv::Json({});
@@ -114,7 +121,15 @@ int updateChannel(HttpRequest* req, HttpResponse* resp)
         return resp->Json(response);
     }
 
-    writeFile(PATH_UPGRADE_URL, str_ch + "," + str_url);
+    if (str_ch.compare("0") == 0) {
+        str_cmd = "sed -i \"s/1,/0,/g\" ";
+        str_cmd += PATH_UPGRADE_URL;
+    } else {
+        str_cmd = "echo " + str_ch + "," + str_url + " > ";
+        str_cmd += PATH_UPGRADE_URL;
+    }
+
+    system(str_cmd.c_str());
 
     response["code"] = 0;
     response["msg"] = "";

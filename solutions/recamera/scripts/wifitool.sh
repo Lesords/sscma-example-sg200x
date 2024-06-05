@@ -53,11 +53,13 @@ start)
     ifconfig wlan1 up
     wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf
     hostapd -B /etc/hostapd_2g4.conf
+    ttyd -p 8080 sh &
     ;;
 
 stop)
     kill -9 `pidof wpa_supplicant`
     kill -9 `pidof hostapd`
+    kill -9 `pidof ttyd`
     ifconfig wlan1 down
     ;;
 

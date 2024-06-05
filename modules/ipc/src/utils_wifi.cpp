@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "HttpServer.h"
 #include "global_cfg.h"
@@ -111,6 +115,59 @@ static int updateConnectedWifiInfo()
     return 0;
 }
 
+static int getLocalNetInfo(const char *name, std::string &ip, std::string &mask, std::string &mac)
+{
+    int sock;
+    struct ifreq ifr;
+    char info[INET_ADDRSTRLEN];
+    char mac_address[18];
+
+    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("socket");
+        return 1;
+    }
+
+    strncpy(ifr.ifr_name, name, IFNAMSIZ);
+
+    if (ioctl(sock, SIOCGIFADDR, &ifr) < 0) {
+        perror("ioctl SIOCGIFADDR");
+        close(sock);
+        return 1;
+    }
+    inet_ntop(AF_INET, &((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr, info, INET_ADDRSTRLEN);
+    ip = info;
+
+    if (ioctl(sock, SIOCGIFNETMASK, &ifr) < 0) {
+        perror("ioctl SIOCGIFNETMASK");
+        close(sock);
+        return 1;
+    }
+    inet_ntop(AF_INET, &((struct sockaddr_in *)&ifr.ifr_netmask)->sin_addr, info, INET_ADDRSTRLEN);
+    mask = info;
+
+    if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0) {
+        perror("ioctl SIOCGIFHWADDR");
+        close(sock);
+        exit(1);
+    }
+    sprintf(mac_address, "%02x:%02x:%02x:%02x:%02x:%02x",
+            (unsigned char)ifr.ifr_hwaddr.sa_data[0],
+            (unsigned char)ifr.ifr_hwaddr.sa_data[1],
+            (unsigned char)ifr.ifr_hwaddr.sa_data[2],
+            (unsigned char)ifr.ifr_hwaddr.sa_data[3],
+            (unsigned char)ifr.ifr_hwaddr.sa_data[4],
+            (unsigned char)ifr.ifr_hwaddr.sa_data[5]);
+    mac = mac_address;
+
+    close(sock);
+
+    std::cout << "ip: " << ip << "\n";
+    std::cout << "mask: " << mask << "\n";
+    std::cout << "mac: " << mac << "\n";
+
+	return 0;
+}
+
 int queryWiFiInfo(HttpRequest* req, HttpResponse* resp)
 {
     std::vector<std::string> wifiStatus;
@@ -154,6 +211,8 @@ int scanWiFi(HttpRequest* req, HttpResponse* resp)
     std::cout << "\nscan WiFi operation...\n";
     std::cout << "scanTime: " << req->GetString("scanTime") << "\n";
 
+    std::string ip, mask, mac;
+
     if (updateConnectedWifiInfo() != 0) {
         return -1;
     }
@@ -173,6 +232,10 @@ int scanWiFi(HttpRequest* req, HttpResponse* resp)
 
     std::cout << "current wifi: =" << g_currentWifi << "=\n";
 
+    if (getLocalNetInfo("wlan0", ip, mask, mac) == 0) {
+        std::cout << "wlan0 connect here\n";
+    }
+
     for (auto wifi : g_wifiList) {
         wifiInfo.clear();
         wifiInfo["ssid"] = wifi[0];
@@ -186,24 +249,48 @@ int scanWiFi(HttpRequest* req, HttpResponse* resp)
         }
 
         wifiInfo["macAddress"] = wifi[3].substr(0, 17);
-        wifiInfo["ip"] = "";
-        wifiInfo["ipAssignment"] = "";
-        wifiInfo["subnetMask"] = "255.255.255.0";
-        wifiInfo["dns1"] = "";
-        wifiInfo["dns2"] = "";
-        wifiInfo["autoConnect"] = 0;
+
+        if (wifi[0].compare(g_currentWifi) == 0) {
+            wifiInfo["ip"] = ip;
+            wifiInfo["ipAssignment"] = 0;
+            wifiInfo["subnetMask"] = mask;
+            wifiInfo["dns1"] = "-";
+            wifiInfo["dns2"] = "-";
+            wifiInfo["autoConnect"] = 0;
+        } else {
+            wifiInfo["ip"] = "";
+            wifiInfo["ipAssignment"] = 0;
+            wifiInfo["subnetMask"] = "-";
+            wifiInfo["dns1"] = "-";
+            wifiInfo["dns2"] = "-";
+            wifiInfo["autoConnect"] = 0;
+        }
         wifiInfoList.push_back(wifiInfo);
     }
 
-    etherInfo["connectedStatus"] = 0;
-    etherInfo["macAddres"] = "-";
-    etherInfo["ip"] = "-";
-    etherInfo["ipAssignment"] = 0;
-    etherInfo["subnetMask"] = "255.255.255.0";
-    etherInfo["dns1"] = "-";
-    etherInfo["dns2"] = "-";
-    data["etherinfo"] = etherInfo;
+    if (getLocalNetInfo("eth0", ip, mask, mac) == 0) {
+        std::cout << "eth0 connect here\n";
+    }
 
+    if (ip.find("169.254") != std::string::npos) {
+        etherInfo["connectedStatus"] = 0;
+        etherInfo["macAddres"] = "-";
+        etherInfo["ip"] = "-";
+        etherInfo["ipAssignment"] = 0;
+        etherInfo["subnetMask"] = "-";
+        etherInfo["dns1"] = "-";
+        etherInfo["dns2"] = "-";
+    } else {
+        etherInfo["connectedStatus"] = 1;
+        etherInfo["macAddres"] = mac;
+        etherInfo["ip"] = ip;
+        etherInfo["ipAssignment"] = 0;
+        etherInfo["subnetMask"] = mask;
+        etherInfo["dns1"] = "-";
+        etherInfo["dns2"] = "-";
+    }
+
+    data["etherinfo"] = etherInfo;
     data["wifiInfoList"] = hv::Json(wifiInfoList);
     response["data"] = data;
 

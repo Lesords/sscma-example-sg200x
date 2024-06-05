@@ -39,7 +39,7 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
 
     std::string os_version = readFile(PATH_ISSUE);
     std::string os = "Null", version = "Null";
-    size_t pos = os_version.find(',');
+    size_t pos = os_version.find(' ');
     if (pos != std::string::npos) {
         os = os_version.substr(0, pos);
         version = os_version.substr(pos + 1);

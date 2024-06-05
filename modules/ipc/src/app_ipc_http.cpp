@@ -36,6 +36,14 @@ static HttpServer server;
 
 static void register_Httpd_Redirect(HttpService& router)
 {
+    router.GET("/hotspot-detect*", [](HttpRequest* req, HttpResponse* resp) { // IOS
+        // resp->File(WWW("err.html"));
+        std::cout << "\n[/hotspot-detect*]current url: " << req->Url() << "\n";
+        std::cout << "-> redirect to " << REDIRECT_URL << "\n";
+
+        return resp->Redirect(REDIRECT_URL);
+    });
+
     router.GET("/generate*", [](HttpRequest* req, HttpResponse* resp) { // android
         // resp->File(WWW("err.html"));
         std::cout << "\n[/generate*]current url: " << req->Url() << "\n";

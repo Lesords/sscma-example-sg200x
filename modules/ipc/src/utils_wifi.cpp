@@ -439,6 +439,8 @@ int getWifiStatus(HttpRequest* req, HttpResponse* resp)
             data["status"] = 1;
         } else if (s.compare("INACTIVE") == 0) {
             data["status"] = 2;
+        } else {
+            data["status"] = 2;
         }
     }
 

@@ -140,6 +140,12 @@ int app_ipc_WebSocket_DeInit()
     return 0;
 }
 
+unsigned long long get_timestamp() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * (unsigned long long)1000 + tv.tv_usec/1000;
+}
+
 int app_ipc_WebSocket_Stream_Send(void* pData, void* pArgs)
 {
     if (pData == NULL) {
@@ -166,7 +172,7 @@ int app_ipc_WebSocket_Stream_Send(void* pData, void* pArgs)
 
     CVI_U32 need_size = LWS_PRE + 1 + total_packSize + 1; // one for type, one for reserve
     if (need_size > MAX_BUFFER_SIZE) {
-        printf("buffer size is not ok\n");
+        printf("need_size(%d) > MAX_BUFFER_SIZE(%d)\n", need_size, MAX_BUFFER_SIZE);
         pthread_mutex_unlock(&g_mutexLock);
         return -1;
     }
@@ -182,6 +188,13 @@ int app_ipc_WebSocket_Stream_Send(void* pData, void* pArgs)
         memcpy(s_imgData + LWS_PRE + 1 + len, pAddr, packSize);
         len += packSize;
     }
+
+    // add timestamp
+    uint64_t timestamp = get_timestamp();// get_timestamp();
+    memcpy(s_imgData + LWS_PRE + 1 + len, &timestamp, 8);
+    len += 8;
+    // printf("%ld: 0x%04x 0x%04x\n", timestamp, 
+    //     (timestamp>>32)&0xfffffffff, timestamp&0xfffffffff);
 
     s_fileSize = len + 1;
 

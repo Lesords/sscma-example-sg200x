@@ -92,15 +92,20 @@ static void register_Device_Api(HttpService& router)
 static void register_WebSocket(HttpService& router)
 {
     router.GET("/api/deviceMgr/getCameraWebsocketUrl", [](HttpRequest* req, HttpResponse* resp) {
+        hv::Json data;
+        data["websocketUrl"] = "ws://" + req->host + ":" + std::to_string(WS_PORT);
         hv::Json res;
         res["code"] = 0;
         res["msg"] = "";
-        hv::Json data;
-        data["websocketUrl"] = "ws://" + req->host + ":" + std::to_string(WS_PORT);
         res["data"] = data;
 
-        std::cout << "WebSocket:" << data["websocketUrl"] << "\n";
+        std::string s_time = req->GetParam("time");//req->GetString("time");
+        int64_t time = std::stoll(s_time);
+        time /= 1000; // to sec
+        std::string cmd = "date -s @" + std::to_string(time);
+        system(cmd.c_str());
 
+        std::cout << "WebSocket:" << data["websocketUrl"] << "\n";
         return resp->Json(res);
     });
 }

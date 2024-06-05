@@ -38,12 +38,13 @@ install:
 	$(eval OUT_DIR := $(APP_INSTALL_DIR)/mnt/system/usr/bin)
 	@mkdir -p $(OUT_DIR)
 	@cp -rf $(TARGET) $(OUT_DIR)/
+	@ln -s ./usr/bin/$(PROJECT) $(APP_INSTALL_DIR)/mnt/system/default_app
 
 	@echo "INFO: installing dist..."
-	$(eval OUT_DIR := $(APP_INSTALL_DIR)/mnt)
+	$(eval OUT_DIR := $(APP_INSTALL_DIR)/mnt/system/usr)
 	@mkdir -p $(OUT_DIR)
 	@cp -rf $(SRCTREE)/solutions/$(PROJECT)/dist/ $(OUT_DIR)/
-	@cp -rf $(SRCTREE)/solutions/$(PROJECT)/scripts/* $(OUT_DIR)/
+	@cp -rf $(SRCTREE)/solutions/$(PROJECT)/scripts $(OUT_DIR)/
 
 	@echo "INFO: installing ini..."
 	$(eval OUT_DIR := $(APP_INSTALL_DIR)/mnt/data)

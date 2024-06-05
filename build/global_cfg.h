@@ -12,7 +12,7 @@
 /* HTTPD */
 #define HTTPD_PORT 80
 #define TTYD_PORT 8080
-#define WWW(file) ("/mnt/dist/" file)
+#define WWW(file) ("/mnt/system/usr/dist/" file)
 #define REDIRECT_URL "http://192.168.16.1/index.html"
 #define DEFAULT_UPGRADE_URL "https://github.com/Seeed-Studio/reCamera/releases/latest"
 
@@ -27,14 +27,14 @@
 #define PATH_SSH_KEY_FILE "/root/.ssh/authorized_keys"
 
 /* usertool.sh*/
-#define SCRIPT_USER(action) ("/mnt/usertool.sh" \
+#define SCRIPT_USER(action) ("/mnt/system/usr/scripts/usertool.sh" \
                              " " #action " ")
 #define SCRIPT_USER_NAME SCRIPT_USER(name)
 #define SCRIPT_USER_PWD SCRIPT_USER(passwd)
 #define SCRIPT_USER_SSH SCRIPT_USER(query_key)
 
 /* wifitool.sh*/
-#define SCRIPT_WIFI(action) ("/mnt/wifitool.sh" \
+#define SCRIPT_WIFI(action) ("/mnt/system/usr/scripts/wifitool.sh" \
                              " " #action " ")
 #define SCRIPT_WIFI_START SCRIPT_WIFI(start)
 #define SCRIPT_WIFI_STOP SCRIPT_WIFI(stop)
@@ -48,8 +48,8 @@
 #define SCRIPT_WIFI_STATE SCRIPT_WIFI(state)
 
 /* upgrade.sh */
-#define SCRIPT_UPGRADE(action) ("/mnt/upgrade.sh" \
-                             " " #action " ")
+#define SCRIPT_UPGRADE(action) ("/mnt/system/usr/scripts/upgrade.sh" \
+                                " " #action " ")
 #define SCRIPT_UPGRADE_START SCRIPT_UPGRADE(start)
 #define SCRIPT_UPGRADE_QUERY SCRIPT_UPGRADE(query)
 #define SCRIPT_UPGRADE_STOP SCRIPT_UPGRADE(stop)

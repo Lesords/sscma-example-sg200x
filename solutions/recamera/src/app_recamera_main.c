@@ -13,6 +13,7 @@
 
 #include "app_ipc_http.h"
 #include "app_ipc_websocket.h"
+#include "hlog.h"
 
 static pthread_t g_pthMisc;
 static CVI_BOOL g_bMisc;
@@ -25,6 +26,7 @@ static CVI_VOID app_ipcam_ExitSig_handle(CVI_S32 signo)
     signal(SIGTERM, SIG_IGN);
 
     if ((SIGINT == signo) || (SIGTERM == signo)) {
+        system(SCRIPT_WIFI_STOP);
         app_ipcam_Exit();
         APP_PROF_LOG_PRINT(LEVEL_INFO, "ipcam receive a signal(%d) from terminate\n", signo);
     }
@@ -150,6 +152,8 @@ static int app_ipcam_Init(void)
 #endif
 
 #ifdef IPC_SUPPORT
+    logger_set_level(hlog, LOG_LEVEL_SILENT);
+    system(SCRIPT_WIFI_START);
     APP_CHK_RET(app_ipc_Httpd_Init(), "IPC http server init");
     APP_CHK_RET(app_ipc_WebSocket_Init(), "IPC websocket init");
 #endif

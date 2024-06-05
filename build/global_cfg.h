@@ -37,6 +37,7 @@
 #define SCRIPT_WIFI(action) ("/mnt/wifitool.sh" \
                              " " #action " ")
 #define SCRIPT_WIFI_START SCRIPT_WIFI(start)
+#define SCRIPT_WIFI_STOP SCRIPT_WIFI(stop)
 #define SCRIPT_WIFI_SCAN SCRIPT_WIFI(scan)
 #define SCRIPT_WIFI_LIST SCRIPT_WIFI(list)
 #define SCRIPT_WIFI_CONNECT SCRIPT_WIFI(connect)
@@ -45,5 +46,12 @@
 #define SCRIPT_WIFI_STATUS SCRIPT_WIFI(status)
 #define SCRIPT_WIFI_REMOVE SCRIPT_WIFI(remove)
 #define SCRIPT_WIFI_STATE SCRIPT_WIFI(state)
+
+/* upgrade.sh */
+#define SCRIPT_UPGRADE(action) ("/mnt/upgrade.sh" \
+                             " " #action " ")
+#define SCRIPT_UPGRADE_START SCRIPT_UPGRADE(start)
+#define SCRIPT_UPGRADE_QUERY SCRIPT_UPGRADE(query)
+#define SCRIPT_UPGRADE_STOP SCRIPT_UPGRADE(stop)
 
 #endif

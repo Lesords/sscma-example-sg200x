@@ -21,14 +21,17 @@ std::string readFile(const std::string& path, const std::string& defaultname)
     return std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
 }
 
-static std::string writeFile(const std::string& path, const std::string& strWrite)
+static int writeFile(const std::string& path, const std::string& strWrite)
 {
     std::ofstream outfile(path);
     if (outfile.is_open()) {
         outfile << strWrite;
         outfile.close();
         std::cout << "Write Success: " << path << std::endl;
+        return 0;
     }
+
+    return -1;
 }
 
 int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)

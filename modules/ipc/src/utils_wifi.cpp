@@ -21,7 +21,8 @@ typedef struct _WIFI_INFO_S {
 std::vector<std::vector<std::string>> g_wifiList;
 std::map<std::string, WIFI_INFO_S> g_wifiInfo;
 std::string g_currentWifi;
-int g_wifiMode = 0;
+int g_wifiMode = 1;
+int g_etherConnected = 0;
 
 static int getWifiInfo(std::vector<std::string>& wifiStatus)
 {
@@ -185,7 +186,7 @@ int queryWiFiInfo(HttpRequest* req, HttpResponse* resp)
     response["msg"] = "";
 
     hv::Json data;
-    data["status"] = 3;
+    data["status"] = g_wifiMode;
 
     hv::Json wifiInfo;
 
@@ -277,6 +278,7 @@ int scanWiFi(HttpRequest* req, HttpResponse* resp)
     }
 
     if (ip.empty() || ip.find("169.254") != std::string::npos) {
+        g_etherConnected = 0;
         etherInfo["connectedStatus"] = 0;
         etherInfo["macAddres"] = "-";
         etherInfo["ip"] = "-";
@@ -285,6 +287,7 @@ int scanWiFi(HttpRequest* req, HttpResponse* resp)
         etherInfo["dns1"] = "-";
         etherInfo["dns2"] = "-";
     } else {
+        g_etherConnected = 1;
         etherInfo["connectedStatus"] = 1;
         etherInfo["macAddres"] = mac;
         etherInfo["ip"] = ip;
@@ -440,12 +443,19 @@ int getWifiStatus(HttpRequest* req, HttpResponse* resp)
         }
 
         if (s.compare("COMPLETED") == 0) {
-            data["status"] = 1;
+            g_wifiMode = 3;     // wifi connected
+            data["status"] = 1; // wifi connected
         } else if (s.compare("INACTIVE") == 0) {
-            data["status"] = 2;
+            g_wifiMode = 1;     // wifi is on
+            data["status"] = 2; // wifi not connected
         } else {
-            data["status"] = 2;
+            g_wifiMode = 2;     // wifi connecting
+            data["status"] = 2; // wifi not connected
         }
+    }
+
+    if (g_etherConnected) {
+        data["status"] = 0;     // ethernet connected
     }
 
     pclose(fp);

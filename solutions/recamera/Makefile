@@ -61,6 +61,7 @@ install:
 	@mkdir -p $(OUT_DIR)
 	ln -s ../../data/cvi_sdr_bin $(OUT_DIR)/cvi_sdr_bin
 
+tar:
 	@echo "INFO: packing..."
 	@tar -zcf $(TARGET_OUT_DIR)/$(PROJECT).tar.gz -C $(APP_INSTALL_DIR) .
 

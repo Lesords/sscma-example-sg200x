@@ -122,6 +122,10 @@ static int getLocalNetInfo(const char *name, std::string &ip, std::string &mask,
     char info[INET_ADDRSTRLEN];
     char mac_address[18];
 
+    ip.clear();
+    mask.clear();
+    mac.clear();
+
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("socket");
         return 1;
@@ -272,7 +276,7 @@ int scanWiFi(HttpRequest* req, HttpResponse* resp)
         std::cout << "eth0 connect here\n";
     }
 
-    if (ip.find("169.254") != std::string::npos) {
+    if (ip.empty() || ip.find("169.254") != std::string::npos) {
         etherInfo["connectedStatus"] = 0;
         etherInfo["macAddres"] = "-";
         etherInfo["ip"] = "-";

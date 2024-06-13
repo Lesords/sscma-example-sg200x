@@ -119,10 +119,15 @@ function mount_recovery() {
     fi
 }
 
+function wget_file() {
+    cp /tmp/resolv.conf /tmp/resolv.conf.bak
+    sed -i 's/^nameserver 192.168.16.1/#&/' /tmp/resolv.conf
+    wget -q --no-check-certificate $1 -O $2
+    cp /tmp/resolv.conf.bak /tmp/resolv.conf
+}
+
 case $1 in
 latest)
-    ifconfig wlan1 down
-
     if [ -z "$2" ]; then echo "Usage: $0 start <url>"; exit 1; fi
     if [ -f $CTRL_FILE ]; then echo "Upgrade is running."; exit 1; fi
     echo "" > $CTRL_FILE
@@ -147,7 +152,7 @@ latest)
 
     # Check version
     md5_txt=$MOUNTPATH/$MD5_FILE
-    wget -q --no-check-certificate $url_md5 -O $md5_txt
+    wget_file $url_md5 $md5_txt
 
     zip_txt=$MOUNTPATH/$ZIP_FILE
     echo $(cat $md5_txt | grep ".*ota.*\.zip") > $zip_txt
@@ -176,8 +181,6 @@ latest)
     ;;
 
 start)
-    ifconfig wlan1 down
-
     if [ -f $CTRL_FILE ]; then echo "Upgrade is running."; exit 1; fi
     echo "" > $CTRL_FILE
 
@@ -229,7 +232,7 @@ start)
     full_path=$MOUNTPATH/$zip
     echo "path: $full_path"
     rm -fv $dl_path/*.zip
-    wget -q --no-check-certificate $full_url -O $full_path
+    wget_file $full_url $full_path
     if [ -f $full_path ]; then
         PERCENTAGE=40
     else

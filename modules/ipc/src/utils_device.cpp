@@ -9,6 +9,7 @@
 #include "utils_device.h"
 
 int g_progress = 0;
+int g_restart = 0;
 
 std::string readFile(const std::string& path, const std::string& defaultname)
 {
@@ -99,7 +100,10 @@ int getSystemUpdateVesionInfo(HttpRequest* req, HttpResponse* resp)
     std::cout << "content: " << content << "\n";
     std::cout << "progress: " << progress << ", msg: " << msg << "\n";
 
-    if (progress >= 11) {
+    if (progress == 0) {
+        response["code"] = 1;
+        response["msg"] = "up to date";
+    } else if (progress >= 11) {
         response["code"] = 0;
         response["msg"] = "";
     } else if (progress == 3 || progress == 4) {
@@ -163,6 +167,7 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
     data["osVersion"] = version;
     data["osUpdateTime"] = "2024.01.01";
     data["terminalPort"] = TTYD_PORT;
+    data["needRestart"] = g_restart;
 
     device["data"] = data;
 
@@ -319,6 +324,10 @@ int getUpdateProgress(HttpRequest* req, HttpResponse* resp)
     }
 
     pclose(fp);
+
+    if (g_progress == 100) {
+        g_restart = 1;
+    }
 
     data["progress"] = g_progress;
     response["data"] = data;

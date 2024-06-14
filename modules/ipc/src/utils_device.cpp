@@ -157,8 +157,8 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
     data["serverUrl"] = url;
     data["officialUrl"] = DEFAULT_UPGRADE_URL;
     data["cpu"] = "sg2002";
-    data["ram"] = 128;
-    data["npu"] = 2;
+    data["ram"] = 256;
+    data["npu"] = 1;
     data["osName"] = os;
     data["osVersion"] = version;
     data["osUpdateTime"] = "2024.01.01";

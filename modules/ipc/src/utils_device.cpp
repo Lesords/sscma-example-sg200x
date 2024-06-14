@@ -34,6 +34,31 @@ static int writeFile(const std::string& path, const std::string& strWrite)
     return -1;
 }
 
+static std::string getGateWay(std::string ip)
+{
+    FILE* fp;
+    char info[128];
+    char cmd[128] = SCRIPT_WIFI_GATEWAY;
+    std::string res;
+
+    strcat(cmd, ip.c_str());
+    fp = popen(cmd, "r");
+    if (fp == NULL) {
+        printf("Failed to run `%s`\n", cmd);
+        return res;
+    }
+
+    if (fgets(info, sizeof(info) - 1, fp) != NULL) {
+        res = std::string(info);
+        if (res.back() == '\n') {
+            res.erase(res.size() - 1);
+        }
+    }
+    pclose(fp);
+
+    return res;
+}
+
 int getSystemUpdateVesionInfo(HttpRequest* req, HttpResponse* resp)
 {
     std::cout << "\nstart to get SystemUpdateVersinInfo...\n";
@@ -126,7 +151,7 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
     data["deviceName"] = readFile(PATH_DEVICE_NAME);
     data["ip"] = req->host;
     data["mask"] = "255.255.255.0";
-    data["gateway"] = "-";
+    data["gateway"] = getGateWay(req->host);
     data["dns"] = "-";
     data["channel"] = std::stoi(ch);
     data["serverUrl"] = url;

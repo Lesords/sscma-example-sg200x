@@ -47,6 +47,7 @@
 #define SCRIPT_WIFI_STATUS SCRIPT_WIFI(status)
 #define SCRIPT_WIFI_REMOVE SCRIPT_WIFI(remove)
 #define SCRIPT_WIFI_STATE SCRIPT_WIFI(state)
+#define SCRIPT_WIFI_GATEWAY SCRIPT_WIFI(get_gateway)
 
 /* upgrade.sh */
 #define SCRIPT_UPGRADE(action) ("/mnt/system/usr/scripts/upgrade.sh" \

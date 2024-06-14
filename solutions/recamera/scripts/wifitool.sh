@@ -67,6 +67,10 @@ state)
     wpa_cli -i wlan0 status | grep "^wpa_state" | awk -F= '{print $2}'
     ;;
 
+get_gateway)
+    iproute | grep default | grep "$2" | awk '{print $3}'
+    ;;
+
 scan)
     scan_wifi
     ;;

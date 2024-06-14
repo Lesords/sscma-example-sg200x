@@ -132,8 +132,8 @@ int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
         os = os_version.substr(0, pos);
         version = os_version.substr(pos + 1);
     }
-    if (os_version.back() == '\n') {
-        os_version.erase(os_version.size() - 1);
+    if (version.back() == '\n') {
+        version.erase(version.size() - 1);
     }
 
     std::string ch_url = readFile(PATH_UPGRADE_URL);

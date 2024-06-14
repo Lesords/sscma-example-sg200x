@@ -25,6 +25,7 @@
 #define PATH_DEVICE_NAME "/etc/device-name"
 #define PATH_UPGRADE_URL "/etc/upgrade"
 #define PATH_SSH_KEY_FILE "/root/.ssh/authorized_keys"
+#define PATH_UPGRADE_PROGRESS_FILE "/tmp/upgrade.percentage"
 
 /* usertool.sh*/
 #define SCRIPT_USER(action) ("/mnt/system/usr/scripts/usertool.sh" \
@@ -50,6 +51,7 @@
 /* upgrade.sh */
 #define SCRIPT_UPGRADE(action) ("/mnt/system/usr/scripts/upgrade.sh" \
                                 " " #action " ")
+#define SCRIPT_UPGRADE_LATEST SCRIPT_UPGRADE(latest)
 #define SCRIPT_UPGRADE_START SCRIPT_UPGRADE(start)
 #define SCRIPT_UPGRADE_QUERY SCRIPT_UPGRADE(query)
 #define SCRIPT_UPGRADE_STOP SCRIPT_UPGRADE(stop)

@@ -3,6 +3,8 @@
 
 std::string readFile(const std::string& path, const std::string& defaultname = "EmptyContent");
 
+int getSystemUpdateVesionInfo(HttpRequest* req, HttpResponse* resp);
+
 int queryDeviceInfo(HttpRequest* req, HttpResponse* resp);
 int updateDeviceName(HttpRequest* req, HttpResponse* resp);
 

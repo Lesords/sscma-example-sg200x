@@ -34,6 +34,66 @@ static int writeFile(const std::string& path, const std::string& strWrite)
     return -1;
 }
 
+int getSystemUpdateVesionInfo(HttpRequest* req, HttpResponse* resp)
+{
+    std::cout << "\nstart to get SystemUpdateVersinInfo...\n";
+
+    std::string content = readFile(PATH_UPGRADE_URL), url = "";
+    std::string cmd = SCRIPT_UPGRADE_LATEST, msg = "";
+    int channel = 0, progress = 0;
+    size_t pos = content.find(',');
+    hv::Json response, data;
+
+    if (pos != std::string::npos) {
+        channel = stoi(content.substr(0, pos));
+        url = content.substr(pos + 1);
+        if (url.back() == '\n') {
+            url.erase(url.size() - 1);
+        }
+    }
+
+    if (channel == 0) {
+        cmd += DEFAULT_UPGRADE_URL;
+    } else {
+        cmd += url;
+    }
+
+    std::cout << "cmd: " << cmd << "\n";
+    system(cmd.c_str());
+
+    content = readFile(PATH_UPGRADE_PROGRESS_FILE);
+    pos = content.find(',');
+    if (pos != std::string::npos) {
+        progress = stoi(content.substr(0, pos));
+        msg = content.substr(pos + 1);
+        if (msg.back() == '\n') {
+            msg.erase(msg.size() - 1);
+        }
+    }
+
+    std::cout << "content: " << content << "\n";
+    std::cout << "progress: " << progress << ", msg: " << msg << "\n";
+
+    if (progress >= 11) {
+        response["code"] = 0;
+        response["msg"] = "";
+    } else if (progress == 3 || progress == 4) {
+        system(cmd.c_str());
+        response["code"] = 1103;
+        response["msg"] = msg;
+    } else {
+        response["code"] = 1106;
+        response["msg"] = msg;
+    }
+
+    data["osName"] = "-";
+    data["osVersion"] = "-";
+    data["downloadUrl"] = "-";
+    response["data"] = data;
+
+    return resp->Json(response);
+}
+
 int queryDeviceInfo(HttpRequest* req, HttpResponse* resp)
 {
     hv::Json device;

@@ -13,6 +13,7 @@ ROOTFS_FILE=rootfs_ext4.emmc
 PERCENTAGE=0
 PERCENTAGE_FILE=/tmp/upgrade.percentage
 CTRL_FILE=/tmp/upgrade.ctrl
+VERSION_FILE=/tmp/upgrade.version
 
 function clean_up() {
     if [ ! -z $MOUNTPATH ]; then
@@ -173,6 +174,7 @@ latest)
         exit_upgrade 1
     fi
 
+    echo "$os_name $os_version" > $VERSION_FILE
     result=$(check_version $os_name $os_version)
     PERCENTAGE=$result
 

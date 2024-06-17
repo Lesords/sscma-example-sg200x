@@ -26,6 +26,7 @@
 #define PATH_UPGRADE_URL "/etc/upgrade"
 #define PATH_SSH_KEY_FILE "/root/.ssh/authorized_keys"
 #define PATH_UPGRADE_PROGRESS_FILE "/tmp/upgrade.percentage"
+#define PATH_UPGRADE_VERSION_FILE "/tmp/upgrade.version"
 
 /* usertool.sh*/
 #define SCRIPT_USER(action) ("/mnt/system/usr/scripts/usertool.sh" \

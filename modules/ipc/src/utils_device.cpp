@@ -98,7 +98,7 @@ int getSystemUpdateVesionInfo(HttpRequest* req, HttpResponse* resp)
         }
     }
 
-    content = readFile(PATH_ISSUE);
+    content = readFile(PATH_UPGRADE_VERSION_FILE);
     pos = content.find(' ');
     if (pos != std::string::npos) {
         os = content.substr(0, pos);

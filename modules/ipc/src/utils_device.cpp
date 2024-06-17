@@ -66,6 +66,7 @@ int getSystemUpdateVesionInfo(HttpRequest* req, HttpResponse* resp)
 
     std::string content = readFile(PATH_UPGRADE_URL), url = "";
     std::string cmd = SCRIPT_UPGRADE_LATEST, msg = "";
+    std::string os = "Null", version = "Null";
     int channel = 0, progress = 0;
     size_t pos = content.find(',');
     hv::Json response, data;
@@ -97,12 +98,23 @@ int getSystemUpdateVesionInfo(HttpRequest* req, HttpResponse* resp)
         }
     }
 
+    content = readFile(PATH_ISSUE);
+    pos = content.find(' ');
+    if (pos != std::string::npos) {
+        os = content.substr(0, pos);
+        version = content.substr(pos + 1);
+    }
+    if (version.back() == '\n') {
+        version.erase(version.size() - 1);
+    }
+
     std::cout << "content: " << content << "\n";
     std::cout << "progress: " << progress << ", msg: " << msg << "\n";
+    std::cout << "os: " << os << ", version: " << version << "\n";
 
     if (progress == 0) {
-        response["code"] = 1;
-        response["msg"] = "up to date";
+        response["code"] = 0;
+        response["msg"] = msg;
     } else if (progress >= 11) {
         response["code"] = 0;
         response["msg"] = "";
@@ -115,9 +127,9 @@ int getSystemUpdateVesionInfo(HttpRequest* req, HttpResponse* resp)
         response["msg"] = msg;
     }
 
-    data["osName"] = "-";
-    data["osVersion"] = "-";
-    data["downloadUrl"] = "-";
+    data["osName"] = os;
+    data["osVersion"] = version;
+    data["downloadUrl"] = "";
     response["data"] = data;
 
     return resp->Json(response);

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-MD5_FILE=md5sum.txt
+MD5_FILE=sg2002_recamera_emmc_md5sum.txt
 URL_FILE=url.txt
 ZIP_FILE=zip.txt
 

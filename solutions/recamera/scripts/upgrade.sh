@@ -233,7 +233,7 @@ start)
     echo "Step4: Download $zip"
     full_path=$MOUNTPATH/$zip
     echo "path: $full_path"
-    rm -fv $dl_path/*.zip
+    rm -fv $MOUNTPATH/*.zip
     wget_file $full_url $full_path
     if [ -f $full_path ]; then
         PERCENTAGE=40

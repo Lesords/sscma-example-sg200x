@@ -28,6 +28,7 @@ static int getWifiInfo(std::vector<std::string>& wifiStatus)
 {
     FILE* fp;
     char info[128];
+    int index = 0;
 
     fp = popen(SCRIPT_WIFI_STATUS, "r");
     if (fp == NULL) {
@@ -36,11 +37,12 @@ static int getWifiInfo(std::vector<std::string>& wifiStatus)
     }
 
     while (fgets(info, sizeof(info) - 1, fp) != NULL) {
-        std::string s(info);
-        if (s.back() == '\n') {
-            s.erase(s.size() - 1);
+        wifiStatus[index] = std::string(info);
+        if (wifiStatus[index].back() == '\n') {
+            wifiStatus[index].erase(wifiStatus[index].size() - 1);
         }
-        wifiStatus.push_back(s);
+
+        ++index;
     }
 
     pclose(fp);
@@ -175,7 +177,7 @@ static int getLocalNetInfo(const char *name, std::string &ip, std::string &mask,
 
 int queryWiFiInfo(HttpRequest* req, HttpResponse* resp)
 {
-    std::vector<std::string> wifiStatus;
+    std::vector<std::string> wifiStatus(4, "");
 
     if (getWifiInfo(wifiStatus) != 0) {
         return -1;

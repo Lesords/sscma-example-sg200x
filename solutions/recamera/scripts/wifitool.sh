@@ -1,14 +1,22 @@
 #!/bin/sh
 
 ifname=wlan0
+IFS=""
 
 scan_wifi() {
     wpa_cli -i wlan0 scan 1> /dev/null
-    wpa_cli -i wlan0 scan_results | tail -n +2 | awk '$5 != "" {print $5, $3, $4, $1}'
+    wpa_cli -i wlan0 scan_results | tail -n +2 | while read -r line
+    do
+        printf "%b\n" $line | awk '$5 != "" {print $5, $3, $4, $1}'
+    done
 }
 
 list_wifi() {
-    wpa_cli -i wlan0 list_networks | tail -n +2 | awk '{print $1, $2, $4}'
+    # wpa_cli -i wlan0 list_networks | tail -n +2 | awk '{print $1, $2, $4}'
+    wpa_cli -i wlan0 list_networks | tail -n +2 | while read -r line
+    do
+        printf "%b\n" $line | awk '{print $1, $2, $4}'
+    done
 }
 
 connect_wifi() {
@@ -39,7 +47,7 @@ wifi_status() {
     address=`echo $wifiStatus | tr ' ' '\n' | grep "^address"`
     ip_address=`echo $wifiStatus | tr ' ' '\n' | grep "^ip_address"`
 
-    echo $ssid | awk -F= '{ if (length($0) == 0) print "-"; else print $2 }'
+    printf "%b" $ssid | awk -F= '{ if (length($0) == 0) print "-"; else print $2 }'
     echo $key_mgmt | awk -F= '{ if (length($0) == 0) print "-"; else print $2 }'
     echo $address | awk -F= '{ if (length($0) == 0) print "-"; else print $2 }'
     echo $ip_address | awk -F= '{ if (length($0) == 0) print "-"; else print $2 }'

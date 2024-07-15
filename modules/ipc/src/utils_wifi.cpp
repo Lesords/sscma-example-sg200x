@@ -7,6 +7,7 @@
 #include <net/if.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <algorithm>
 
 #include "HttpServer.h"
 #include "global_cfg.h"
@@ -50,6 +51,30 @@ static int getWifiInfo(std::vector<std::string>& wifiStatus)
     return 0;
 }
 
+static bool cmp(std::vector<std::string> lhs, std::vector<std::string> rhs) {
+    if (lhs[0] == rhs[0]) {
+        return std::stoi(lhs[1]) > std::stoi(rhs[1]);
+    }
+    return lhs[0] < rhs[0];
+}
+
+static int deduplicate(std::vector<std::vector<std::string>> &wifiList) {
+    int size = wifiList.size();
+    int l = 0, r = 1;
+
+    while (r < size) {
+        if (wifiList[l][0] == wifiList[r][0]) {
+            r++;
+        } else {
+            wifiList[++l] = wifiList[r++];
+        }
+    }
+
+    wifiList.erase(wifiList.begin() + l + 1, wifiList.end());
+
+    return l;
+}
+
 static int getWifiList()
 {
     FILE* fp;
@@ -79,6 +104,9 @@ static int getWifiList()
     }
 
     if (!wifiList.empty()) {
+        sort(wifiList.begin(), wifiList.end(), cmp);
+        deduplicate(wifiList);
+
         g_wifiList = wifiList;
     }
 

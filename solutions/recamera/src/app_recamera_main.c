@@ -99,14 +99,15 @@ static int app_ipcam_MiscThread_DeInit(void)
 
 static int app_ipcam_Exit(void)
 {
-    APP_CHK_RET(app_ipcam_MiscThread_DeInit(), "DeInit Misc Process");
+    // APP_CHK_RET(app_ipcam_MiscThread_DeInit(), "DeInit Misc Process");
+    (void) app_ipcam_MiscThread_DeInit;
 
 #ifdef RECORD_SUPPORT
     APP_CHK_RET(app_ipcam_Record_UnInit(), "running SD Record");
 #endif
 
 #ifdef OSD_SUPPORT
-    APP_CHK_RET(app_ipcam_Osdc_DeInit(), "OsdC DeInit");
+    // APP_CHK_RET(app_ipcam_Osdc_DeInit(), "OsdC DeInit");
 #endif
 
 #ifdef AI_SUPPORT
@@ -120,18 +121,18 @@ static int app_ipcam_Exit(void)
 #endif
 
 #ifdef AUDIO_SUPPORT
-    APP_CHK_RET(app_ipcam_Audio_UnInit(), "Audio Stop");
+    // APP_CHK_RET(app_ipcam_Audio_UnInit(), "Audio Stop");
 #endif
 
-    APP_CHK_RET(app_ipcam_Vpss_DeInit(), "Vpss DeInit");
+    // APP_CHK_RET(app_ipcam_Vpss_DeInit(), "Vpss DeInit");
 
-    APP_CHK_RET(app_ipcam_Venc_Stop(APP_VENC_ALL), "Venc Stop");
+    // APP_CHK_RET(app_ipcam_Venc_Stop(APP_VENC_ALL), "Venc Stop");
 
-    APP_CHK_RET(app_ipcam_Vi_DeInit(), "Vi DeInit");
+    // APP_CHK_RET(app_ipcam_Vi_DeInit(), "Vi DeInit");
 
-    APP_CHK_RET(app_ipcam_Sys_DeInit(), "System DeInit");
+    // APP_CHK_RET(app_ipcam_Sys_DeInit(), "System DeInit");
 
-    APP_CHK_RET(app_ipcam_rtsp_Server_Destroy(), "RTSP Server Destroy");
+    // APP_CHK_RET(app_ipcam_rtsp_Server_Destroy(), "RTSP Server Destroy");
 
     return CVI_SUCCESS;
 }
@@ -139,16 +140,17 @@ static int app_ipcam_Exit(void)
 static int app_ipcam_Init(void)
 {
 
-    APP_CHK_RET(app_ipcam_Peripheral_Init(), "init peripheral");
+    // APP_CHK_RET(app_ipcam_Peripheral_Init(), "init peripheral");
+    (void) app_ipcam_Peripheral_Init;
 
-    APP_CHK_RET(app_ipcam_Sys_Init(), "init systerm");
+    // APP_CHK_RET(app_ipcam_Sys_Init(), "init systerm");
 
-    APP_CHK_RET(app_ipcam_Vi_Init(), "init vi module");
+    // APP_CHK_RET(app_ipcam_Vi_Init(), "init vi module");
 
-    APP_CHK_RET(app_ipcam_Vpss_Init(), "init vpss module");
+    // APP_CHK_RET(app_ipcam_Vpss_Init(), "init vpss module");
 
 #ifdef OSD_SUPPORT
-    APP_CHK_RET(app_ipcam_Osdc_Init(), "init Draw Osdc");
+    // APP_CHK_RET(app_ipcam_Osdc_Init(), "init Draw Osdc");
 #endif
 
 #ifdef IPC_SUPPORT
@@ -158,13 +160,14 @@ static int app_ipcam_Init(void)
     APP_CHK_RET(app_ipc_WebSocket_Init(), "IPC websocket init");
 #endif
 
-    APP_CHK_RET(app_ipcam_Venc_Init(APP_VENC_ALL), "init video encode");
+    // APP_CHK_RET(app_ipcam_Venc_Init(APP_VENC_ALL), "init video encode");
 
 #ifdef AUDIO_SUPPORT
-    APP_CHK_RET(app_ipcam_Audio_Init(), "start audio processing");
+    // APP_CHK_RET(app_ipcam_Audio_Init(), "start audio processing");
 #endif
 
-    APP_CHK_RET(app_ipcam_MiscThread_Init(), "Init Misc Process");
+    // APP_CHK_RET(app_ipcam_MiscThread_Init(), "Init Misc Process");
+    (void) app_ipcam_MiscThread_Init;
 
     return CVI_SUCCESS;
 }
@@ -184,10 +187,10 @@ int main(int argc, char* argv[])
     APP_CHK_RET(app_ipcam_Init(), "app_ipcam_Init");
 
     /* create rtsp server */
-    APP_CHK_RET(app_ipcam_Rtsp_Server_Create(), "create rtsp server");
+    // APP_CHK_RET(app_ipcam_Rtsp_Server_Create(), "create rtsp server");
 
     /* start video encode */
-    APP_CHK_RET(app_ipcam_Venc_Start(APP_VENC_ALL), "start video processing");
+    // APP_CHK_RET(app_ipcam_Venc_Start(APP_VENC_ALL), "start video processing");
 
     while (1) {
         sleep(1);

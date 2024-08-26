@@ -58,6 +58,11 @@ start)
     if [ -z "$(ifconfig wlan1 2> /dev/null)" ]; then
         iw dev wlan0 interface add wlan1 type __ap;
     fi
+
+    if [ "$2" ]; then
+        sed -i "s/ssid=.*$/ssid=$2/g" /etc/hostapd_2g4.conf
+    fi
+
     ifconfig wlan1 up
     wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf
     hostapd -B /etc/hostapd_2g4.conf

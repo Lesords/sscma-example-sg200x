@@ -147,4 +147,20 @@ int app_ipc_Httpd_DeInit()
     return 0;
 }
 
+int app_WiFi_Init() {
+    char cmd[128] = SCRIPT_WIFI_START;
+    std::string wifiName = getWiFiName("wlan0");
+
+    strcat(cmd, wifiName.c_str());
+    printf("[%s] cmd: %s\n", __func__, cmd);
+    system(cmd);
+
+    return 0;
+}
+
+int app_WiFi_Deinit() {
+    system(SCRIPT_WIFI_STOP);
+    return 0;
+}
+
 EXTERN_C_END()

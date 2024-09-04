@@ -152,6 +152,8 @@ int app_WiFi_Init() {
     std::string wifiName = getWiFiName("wlan0");
 
     strcat(cmd, wifiName.c_str());
+    strcat(cmd, " ");
+    strcat(cmd, std::to_string(TTYD_PORT).c_str());
     printf("[%s] cmd: %s\n", __func__, cmd);
     system(cmd);
 

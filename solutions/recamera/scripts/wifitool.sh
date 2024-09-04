@@ -66,7 +66,7 @@ start)
     ifconfig wlan1 up
     wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf
     hostapd -B /etc/hostapd_2g4.conf
-    ttyd -p 8080 sh > /dev/null 2>&1 &
+    ttyd -p $3 sh > /dev/null 2>&1 &
     ;;
 
 stop)

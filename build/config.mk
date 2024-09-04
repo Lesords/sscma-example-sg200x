@@ -183,7 +183,8 @@ DEFS-$(CONFIG_MODULE_IPC) += -DIPC_SUPPORT
 HV_LIB_DIR=$(APP_PREBUILT_DIR)/libhv/musl_riscv64
 INCS-$(CONFIG_MODULE_HV) += -I$(HV_LIB_DIR)/include/hv
 ifeq ($(CONFIG_PROJECT_STATIC), y)
-LIBS-$(CONFIG_MODULE_HV) += -L$(HV_LIB_DIR)/lib -Wl,-Bstatic -lhv
+# LIBS-$(CONFIG_MODULE_HV) += -L$(HV_LIB_DIR)/lib -Wl,-Bstatic -lhv
+LIBS-$(CONFIG_MODULE_HV) += -L$(reCamera_sysroot)/usr/lib -Wl,-Bstatic -lhv
 else
 LIBS-$(CONFIG_MODULE_HV) += -L$(HV_LIB_DIR)/lib -lhv
 endif

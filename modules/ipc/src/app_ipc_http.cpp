@@ -96,6 +96,10 @@ static void register_Device_Api(HttpService& router)
     router.POST("/api/deviceMgr/updateSystem", updateSystem);
     router.GET("/api/deviceMgr/getUpdateProgress", getUpdateProgress);
     router.POST("/api/deviceMgr/cancelUpdate", cancelUpdate);
+
+    router.GET("/api/deviceMgr/getDeviceList", getDeviceList);
+    router.GET("/api/deviceMgr/getDeviceInfo", getDeviceInfo);
+    router.GET("/api/deviceMgr/getDeviceIP", getDeviceIP);
 }
 
 static void register_WebSocket(HttpService& router)

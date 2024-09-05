@@ -3,6 +3,10 @@
 #include <iterator>
 #include <stdio.h>
 #include <string>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "HttpServer.h"
 #include "global_cfg.h"
@@ -58,6 +62,18 @@ static std::string getGateWay(std::string ip)
     pclose(fp);
 
     return res;
+}
+
+static void clearNewline(char* value, int len) {
+    if (value[len - 1] == '\n') {
+        value[len - 1] = '\0';
+    }
+}
+
+static void clearNewline(std::string& value) {
+    if (value.back() == '\n') {
+        value.erase(value.size() - 1);
+    }
 }
 
 int getSystemUpdateVesionInfo(HttpRequest* req, HttpResponse* resp)
@@ -361,3 +377,126 @@ int cancelUpdate(HttpRequest* req, HttpResponse* resp)
 
     return resp->Json(response);
 }
+
+int getDeviceList(HttpRequest* req, HttpResponse* resp) {
+    FILE* fp;
+    char cmd[128] = SCRIPT_DEVICE_GETADDRESSS;
+    char info[128] = "";
+    std::string deviceName = readFile(PATH_DEVICE_NAME);
+    hv::Json response, data;
+
+    strcat(cmd, req->client_addr.ip.c_str());
+    printf("[chenl][%s] - cmd: %s\n", __func__, cmd);
+    fp = popen(cmd, "r");
+    if (fp == NULL) {
+        printf("Failed to run `%s`\n", cmd);
+        return -1;
+    }
+
+    fgets(info, sizeof(info) - 1, fp);
+    clearNewline(info, strlen(info));
+
+    printf("[chenl][%s] - info: %s\n", __func__, info);
+
+    data.push_back({
+        {"deviceName", deviceName},
+        {"ip", info}
+    });
+
+    if (strlen(info) == 0) {
+        response["code"] = 1;
+        response["mgs"] = "";
+    } else {
+        response["code"] = 0;
+        response["mgs"] = "";
+    }
+    response["data"]["deviceList"] = data;
+
+    return resp->Json(response);
+}
+
+int getDeviceInfo(HttpRequest* req, HttpResponse* resp) {
+    std::cout << "id: " << req->GetString("id") << "\n";
+    std::cout << "ip address: " << req->GetString("ip") << "\n";
+
+    std::string os_version = readFile(PATH_ISSUE);
+    std::string os = "Null", version = "Null";
+    size_t pos;
+
+    clearNewline(os_version);
+    pos = os_version.find(' ');
+    if (pos != std::string::npos) {
+        os = os_version.substr(0, pos);
+        version = os_version.substr(pos + 1);
+    }
+
+    FILE* fp;
+    char cmd[128] = SCRIPT_DEVICE_GETADDRESSS;
+    char info[128] = "";
+
+    strcat(cmd, req->client_addr.ip.c_str());
+    printf("[chenl][%s] - cmd: %s\n", __func__, cmd);
+    fp = popen(cmd, "r");
+    if (fp == NULL) {
+        printf("Failed to run `%s`\n", cmd);
+        return -1;
+    }
+
+    fgets(info, sizeof(info) - 1, fp);
+    clearNewline(info, strlen(info));
+    printf("[chenl][%s] - info: %s\n", __func__, info);
+
+    hv::Json response, data;
+
+    data["deviceName"] = os;
+    data["ip"] = info;
+    data["status"] = 1;
+    data["osVersion"] = version;
+    data["sn"] = "-";
+
+    response["code"] = 0;
+    response["mgs"] = "";
+    response["data"] = data;
+
+    return resp->Json(response);
+}
+
+static std::string getLocalIp(const char *name) {
+    int sock;
+    struct ifreq ifr;
+    char info[INET_ADDRSTRLEN];
+    std::string ip;
+
+    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("socket");
+        return ip;
+    }
+
+    strncpy(ifr.ifr_name, name, IFNAMSIZ);
+
+    if (ioctl(sock, SIOCGIFADDR, &ifr) < 0) {
+        perror("ioctl SIOCGIFADDR");
+        close(sock);
+        return ip;
+    }
+    inet_ntop(AF_INET, &((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr, info, INET_ADDRSTRLEN);
+    ip = info;
+
+    return ip;
+}
+
+int getDeviceIP(HttpRequest* req, HttpResponse* resp) {
+    hv::Json response, data;
+
+    data["usb0"] = getLocalIp("usb0");
+    data["eth0"] = getLocalIp("eth0");
+    data["wlan0"] = getLocalIp("wlan0");
+    data["wlan1"] = getLocalIp("wlan1");
+
+    response["code"] = 0;
+    response["mgs"] = "";
+    response["data"] = data;
+
+    return resp->Json(response);
+}
+

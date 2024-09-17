@@ -528,6 +528,17 @@ int uploadApp(const HttpContextPtr& ctx) {
 
     if (ctx->is(MULTIPART_FORM_DATA)) {
         ret = ctx->request->SaveFormFile("file", appPath.c_str());
+        std::string data = ctx->request->GetFormData("data");
+        printf("getFormData: %s\n", data.c_str());
+
+        std::string filepath = appPath + "flow.json";
+        HFile file;
+        if (file.open(filepath.c_str(), "wb") != 0) {
+            printf("flow file open failed here\n");
+        } else {
+            file.write(data.c_str(), data.size());
+            printf("flow file write done here\n");
+        }
     } else {
         std::string fileName = ctx->param("filename", "app.zip");
         std::string filePath = appPath + fileName;

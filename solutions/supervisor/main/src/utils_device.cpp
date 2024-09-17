@@ -527,6 +527,20 @@ int uploadApp(const HttpContextPtr& ctx) {
     }
 
     if (ctx->is(MULTIPART_FORM_DATA)) {
+        {
+            auto form = ctx->request->GetForm(); // const hv::MultiPart&
+            auto iter = form.find("file");
+            if (iter == form.end()) {
+                printf("it's HTTP_STATUS_BAD_REQUEST[%d]\n", HTTP_STATUS_BAD_REQUEST);
+            } else {
+                const auto formdata = iter->second;
+                if (formdata.filename.empty()) {
+                    printf("filename is empty here\n");
+                } else {
+                    printf("filename: %s\n", formdata.filename.c_str());
+                }
+            }
+        }
         ret = ctx->request->SaveFormFile("file", appPath.c_str());
         std::string data = ctx->request->GetFormData("data");
         printf("getFormData: %s\n", data.c_str());

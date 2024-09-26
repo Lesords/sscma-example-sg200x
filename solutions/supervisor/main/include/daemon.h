@@ -17,4 +17,7 @@ extern APP_STATUS sscmaStatus;
 void initDaemon();
 void stopDaemon();
 
+int startFlow();
+int stopFlow();
+
 #endif

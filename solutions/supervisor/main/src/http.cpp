@@ -85,6 +85,9 @@ static void registerDeviceApi(HttpService& router)
 
     router.GET("/api/deviceMgr/getModelInfo", getModelInfo);
     router.POST("/api/deviceMgr/uploadModel", uploadModel);
+
+    router.GET("/api/deviceMgr/startFlow", startFlowApi);
+    router.GET("/api/deviceMgr/stopFlow", stopFlowApi);
 }
 
 static void registerFileApi(HttpService& router)

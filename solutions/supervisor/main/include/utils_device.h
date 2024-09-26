@@ -35,4 +35,7 @@ int uploadApp(const HttpContextPtr& ctx);
 int getModelInfo(HttpRequest* req, HttpResponse* resp);
 int uploadModel(const HttpContextPtr& ctx);
 
+int startFlowApi(HttpRequest* req, HttpResponse* resp);
+int stopFlowApi(HttpRequest* req, HttpResponse* resp);
+
 #endif

@@ -715,3 +715,29 @@ int uploadModel(const HttpContextPtr& ctx) {
 
     return ctx->send(response.dump(2));
 }
+
+int startFlowApi(HttpRequest* req, HttpResponse* resp) {
+    hv::Json response;
+
+    startFlow();
+
+    printf("[DEBUG] - filePath: %s===\n", req->GetString("filePath").c_str());
+
+    response["code"] = 0;
+    response["msg"] = "";
+    response["data"] = hv::Json({});
+
+    return resp->Json(response);
+}
+
+int stopFlowApi(HttpRequest* req, HttpResponse* resp) {
+    hv::Json response;
+
+    stopFlow();
+
+    response["code"] = 0;
+    response["msg"] = "";
+    response["data"] = hv::Json({});
+
+    return resp->Json(response);
+}

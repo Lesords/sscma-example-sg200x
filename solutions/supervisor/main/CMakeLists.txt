@@ -1,3 +1,5 @@
+set(SYSROOT $ENV{reCamera_sysroot})
+
 component_register(
     COMPONENT_NAME main
     SRCS ${CMAKE_CURRENT_LIST_DIR}/main.cpp
@@ -6,5 +8,7 @@ component_register(
     SRCS ${CMAKE_CURRENT_LIST_DIR}/src/utils_user.cpp
     SRCS ${CMAKE_CURRENT_LIST_DIR}/src/utils_wifi.cpp
     INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/include
+    LIBRARY_DIRS ${SYSROOT}/usr/lib/
+
     PRIVATE_REQUIREDS hv
 )

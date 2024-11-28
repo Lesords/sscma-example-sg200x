@@ -125,6 +125,7 @@ int main(int argc, char* argv[])
 
     video_ch_param_t param;
 
+#if 0
     // ch0
     param.format = VIDEO_FORMAT_RGB888;
     param.width = 1920;
@@ -140,6 +141,7 @@ int main(int argc, char* argv[])
     param.fps = 5;
     setupVideo(VIDEO_CH1, &param);
     registerVideoFrameHandler(VIDEO_CH1, 0, fpSaveVpssFrame, (void*)".nv21");
+#endif
 
     // ch2
 #if 0

@@ -46,7 +46,7 @@ json api_halow::get_eth()
     return e;
 }
 
-json api_halow::get_sta_current()
+json api_halow::get_halow_current()
 {
     json c = json::object();
     for (auto& line : parse_result(script(__func__), '=', false)) {
@@ -89,7 +89,7 @@ json api_halow::get_sta_current()
     return c;
 }
 
-json api_halow::get_sta_connected(json& current)
+json api_halow::get_halow_connected(json& current)
 {
     json n = json::array();
     if (!current.value("ssid", "").empty()) {
@@ -115,9 +115,8 @@ json api_halow::get_sta_connected(json& current)
 void api_halow::start_halow()
 {
     auto&& conf = parse_result(script(__func__));
-    _sta_enable = conf.value("sta", 1);
-    _ap_enable = conf.value("ap", 1);
-    LOGV("sta_enable: %d, ap_enable: %d", _sta_enable, _ap_enable);
+    _sta_enable = conf.value("halow", 1);
+    LOGV("halow_enable: %d", _sta_enable);
 
     int sta = 2; // no halow
     if (_sta_enable != -1)
@@ -129,24 +128,16 @@ void api_halow::start_halow()
 
         _need_scan = true;
         while (_running) {
-            if (_need_scan || (_ap_enable == 1)) {
+            if (_need_scan) {
                 _need_scan = false;
                 auto&& e = get_eth();
-                auto&& c = get_sta_current();
-                auto&& n = get_sta_connected(c);
-                auto&& l = get_scan_list(n);
-
-                if ((e.value("status", 0) == 3) || (c.value("status", 0) == 3)) {
-                    if (_ap_enable == 1) {
-                        script("_ap_stop");
-                        _ap_enable = 0;
-                        timeout = 0;
-                    }
-                }
+                auto&& c = get_halow_current();
+                auto&& n = get_halow_connected(c);
+                auto&& l = get_halow_scan_list(n);
 
                 _halow_mutex.lock();
                 _nw_info["etherInfo"] = e;
-                _nw_info["connectedWifiInfoList"] = n;
+                _nw_info["connectedHalowInfoList"] = n;
                 if (!l.empty()) {
                     _nw_info["halowInfoList"] = l;
                 }
@@ -239,31 +230,40 @@ api_status_t api_halow::forgetHalow(request_t req, response_t res)
     return _halow_ctrl(req, res, __func__);
 }
 
-static json _parse_iw_scan(std::string fname)
+static json _parse_halow_scan(std::string fname)
 {
     json jlist = json::array();
     std::ifstream f(fname);
     if (f.is_open()) {
-        json j = json::object();
         std::string line;
+        json j;
+        std::getline(f, line); // skip first line
         while (std::getline(f, line)) {
-            if (line.find("BSS ") == 0) {
-                if (!j.empty() && !j.value("ssid", "").empty())
-                    jlist.push_back(j);
-                j = json::object();
-                j["bssid"] = line.substr(4, 17);
-            } else if (line.find("\tfreq: ") == 0) {
-                j["frequency"] = stoi(line.substr(7));
-            } else if (line.find("\tsignal: ") == 0) {
-                std::string sub = line.substr(9);
-                j["signal"] = std::stod(sub.substr(0, sub.find(" dBm")));
-            } else if (line.find("\tSSID: ") == 0) {
-                std::string ssid = line.substr(7);
-                if (ssid.empty())
-                    continue;
-                j["ssid"] = parse_escaped_string(ssid);
-            } else if (line.find("\tRSN:\t") == 0) {
-                j["rsn"] = line.substr(6);
+            std::stringstream ss(line);
+            std::string field;
+            j = json::object();
+            int cnt = 0;
+            while (std::getline(ss, field, '\t')) {
+                switch (cnt++) {
+                    case 0:
+                        j["bssid"] = field;
+                        break;
+                    case 1:
+                        j["frequency"] = stoi(field);
+                        break;
+                    case 2:
+                        j["signal"] = std::stod(field);
+                        break;
+                    case 3:
+                        j["rsn"] = field;
+                        break;
+                    case 4:
+                        j["ssid"] = parse_escaped_string(field);
+                        break;
+                }
+            }
+            if (!j.empty() && !j.value("ssid", "").empty()) {
+                jlist.push_back(j);
             }
         }
         if (!j.empty() && !j.value("ssid", "").empty()) {
@@ -273,10 +273,10 @@ static json _parse_iw_scan(std::string fname)
     return jlist;
 }
 
-json api_halow::get_scan_list(json& connected)
+json api_halow::get_halow_scan_list(json& connected)
 {
     std::map<std::string, json> m;
-    for (auto& j : _parse_iw_scan(script(__func__))) {
+    for (auto& j : _parse_halow_scan(script(__func__))) {
         // Compatible with previous
         j["auth"] = j.value("rsn", "").empty() ? 0 : 1;
         j["macAddress"] = j["bssid"];
@@ -320,7 +320,6 @@ api_status_t api_halow::switchHalow(request_t req, response_t res)
         response(res, -1, "halow not supported");
     } else {
         _sta_enable = parse_body(req).value("mode", _sta_enable);
-        _ap_enable = _sta_enable;
         script(__func__, _sta_enable);
         response(res, 0, STR_OK);
     }

@@ -1,5 +1,5 @@
-#ifndef API_WIFI_H
-#define API_WIFI_H
+#ifndef API_HALOW_H
+#define API_HALOW_H
 
 #include "../../components/mongoose/json.hpp"
 #include <atomic>
@@ -43,7 +43,6 @@ public:
 
 private:
     static inline int _sta_enable = 1;
-    static inline int _ap_enable = 1;
     static inline json _nw_info;
     static inline int8_t _failed_cnt = 10;
 
@@ -60,13 +59,13 @@ private:
     }
 
     json get_eth();
-    json get_sta_current();
-    json get_sta_connected(json& current);
-    json get_scan_list(json& connected);
+    json get_halow_current();
+    json get_halow_connected(json& current);
+    json get_halow_scan_list(json& connected);
 
     void start_halow();
     void stop_halow();
     static api_status_t _halow_ctrl(request_t req, response_t res, std::string ctrl);
 };
 
-#endif // API_WIFI_H
+#endif // API_HALOW_H

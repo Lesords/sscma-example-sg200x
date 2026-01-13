@@ -34,18 +34,6 @@ static std::string parse_escaped_string(const std::string& input)
     return result;
 }
 
-json api_halow::get_eth()
-{
-    auto&& e = parse_result(script(__func__));
-    std::string ip = e.value("ip", "");
-    if (ip.find("169.254") == 0) {
-        ip = "";
-    }
-    e["ipAssignment"] = 1; // static / dhcp
-    e["status"] = ip.empty() ? 1 : 3; // 1=not connected, 2=connecting, 3=connected
-    return e;
-}
-
 json api_halow::get_halow_current()
 {
     json c = json::object();
@@ -130,13 +118,11 @@ void api_halow::start_halow()
         while (_running) {
             if (_need_scan) {
                 _need_scan = false;
-                auto&& e = get_eth();
                 auto&& c = get_halow_current();
                 auto&& n = get_halow_connected(c);
                 auto&& l = get_halow_scan_list(n);
 
                 _halow_mutex.lock();
-                _nw_info["etherInfo"] = e;
                 _nw_info["connectedHalowInfoList"] = n;
                 if (!l.empty()) {
                     _nw_info["halowInfoList"] = l;

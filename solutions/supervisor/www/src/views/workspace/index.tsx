@@ -39,6 +39,7 @@ import {
   acquireFileUrlApi,
   applyModelApi,
 } from "@/api/sensecraft";
+import { getModelApi } from "@/api/model";
 import recamera_logo from "@/assets/images/recamera_logo.png";
 import { IAppInfo, IModelData, IActionInfo } from "@/api/sensecraft/sensecraft";
 import { sensecraftAuthorize, parseUrlParam, DefaultFlowData } from "@/utils";
@@ -101,9 +102,10 @@ const Workspace = () => {
       const param = parseUrlParam(window.location.href);
       const token_url = param.token;
       const refresh_token = param.refresh_token;
-      const action = param.action; //new / app / clone / model /normal  action为空默认为normal
+      const action = param.action; //new / app / clone / model / train /normal  action为空默认为normal
       const app_id = param.app_id; //type为app时才需要传
-      const model_id = param.model_id; //type为model时才需要传
+      const model_id = param.model_id; //type为model或train时才需要传
+      const model_name = param.model_name; //type为train时才需要传
 
       let actionInfo;
       if (action) {
@@ -111,6 +113,7 @@ const Workspace = () => {
           action: action,
           app_id: app_id,
           model_id: model_id,
+          model_name: model_name,
         };
       } else {
         actionInfo = {
@@ -209,9 +212,10 @@ const Workspace = () => {
   useEffect(() => {
     const initAction = async () => {
       if (actionInfo?.action && token) {
-        const action = actionInfo.action; //new / app / clone / model /normal  action为空默认为normal
+        const action = actionInfo.action; //new / app / clone / model / train /normal  action为空默认为normal
         const app_id = actionInfo.app_id; //type为app时才需要传
-        const model_id = actionInfo.model_id; //type为model时才需要传
+        const model_id = actionInfo.model_id; //type为model或train时才需要传
+        const model_name = actionInfo.model_name; //type为train时才需要传
         if (action == "app") {
           if (app_id) {
             //打开云端应用
@@ -231,6 +235,12 @@ const Workspace = () => {
           if (model_id) {
             //获取模型详情
             deployAndCreateAppForSensecraft(model_id);
+          }
+        } else if (action == "train") {
+          //训练模型
+          if (model_id) {
+            //获取模型文件并上传到设备
+            handleTrainModel(model_id, model_name);
           }
         } else if (action == "normal") {
           checkAndSyncAppData();
@@ -519,6 +529,78 @@ const Workspace = () => {
       setLoadingTip("");
     } catch (error) {
       messageApi.error("Deploy model failed");
+      setLoading(false);
+      setLoadingTip("");
+    }
+  };
+
+  const handleTrainModel = async (model_id: string, model_name?: string) => {
+    if (!deviceInfo?.ip) {
+      messageApi.error("Device not connected");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setLoadingTip("Getting model");
+      const blob = await getModelApi(model_id);
+      
+      // 上传模型到设备
+      setLoadingTip("Uploading model to device");
+      const formData = new FormData();
+      const fileName = model_name ? `${model_name}.cvimodel` : `${model_id}.cvimodel`;
+      formData.append("model_file", blob, fileName);
+
+      // 创建简单的模型信息
+      const modelInfo = {
+        model_id: model_id,
+        model_name: model_name || model_id,
+      };
+      formData.append("model_info", JSON.stringify(modelInfo));
+
+      const resp = await uploadModelApi(formData);
+      if (resp.code == 0) {
+        messageApi.success("Model uploaded to device successfully");
+
+        // 更新 flow 以使 Node-RED 生效
+        setLoadingTip("Updating flow");
+        try {
+          const flows = await getFlows();
+          if (flows && Array.isArray(flows)) {
+            // 找到 type 为 "model" 的节点，将其 uri 设置为空字符串
+            let hasModelNode = false;
+            const updatedFlows = flows.map((node: Record<string, unknown>) => {
+              if (node.type === "model") {
+                hasModelNode = true;
+                return {
+                  ...node,
+                  uri: "",
+                };
+              }
+              return node;
+            });
+            
+            // 只有在找到 model 节点时才发送 flow
+            if (hasModelNode) {
+              const flowsStr = JSON.stringify(updatedFlows);
+              await sendFlow(flowsStr);
+            }
+          }
+        } catch (error) {
+          console.error("Update flow error:", error);
+          // 不显示错误，因为模型已经上传成功
+        }
+      } else {
+        messageApi.error("Upload model to device failed");
+      }
+    } catch (error) {
+      console.error("Train model error:", error);
+      const errorMsg =
+        error && typeof error === "object" && "msg" in error
+          ? (error as { msg?: string }).msg
+          : "Train model failed";
+      messageApi.error(errorMsg || "Train model failed");
+    } finally {
       setLoading(false);
       setLoadingTip("");
     }

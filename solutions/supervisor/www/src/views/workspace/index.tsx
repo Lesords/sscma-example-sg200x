@@ -34,6 +34,7 @@ import {
   acquireFileUrlApi,
   applyModelApi,
 } from "@/api/sensecraft";
+import { getModelApi } from "@/api/model";
 import recamera_logo from "@/assets/images/recamera_logo.png";
 import { IAppInfo, IModelData, IActionInfo } from "@/api/sensecraft/sensecraft";
 import {
@@ -75,6 +76,18 @@ interface Node {
   type: string;
   label?: string;
 }
+
+interface ITrainFlowMeta {
+  source?: string;
+  train_model_id?: string;
+  task_id?: number | null;
+  device_type?: number | null;
+  model_name?: string;
+  model_md5?: string | null;
+  classes?: string[];
+}
+
+const TRAIN_META_NODE_NAME = "__train_meta__";
 
 const Workspace = () => {
   const { token, appInfo, nickname, updateAppInfo, updateNickname } =
@@ -340,6 +353,78 @@ const Workspace = () => {
     }
   };
 
+  const extractTrainMetaFromFlow = (flowData?: string): ITrainFlowMeta | null => {
+    if (!flowData) return null;
+    try {
+      const nodes = JSON.parse(flowData);
+      if (!Array.isArray(nodes)) return null;
+      const metaNode = nodes.find(
+        (node: Record<string, unknown>) =>
+          node.type === "comment" && node.name === TRAIN_META_NODE_NAME
+      ) as { info?: string } | undefined;
+      if (!metaNode?.info) return null;
+      const meta = JSON.parse(metaNode.info);
+      if (meta && typeof meta === "object" && meta.train_model_id) {
+        return meta as ITrainFlowMeta;
+      }
+      return null;
+    } catch (error) {
+      console.warn("flow:train_meta_parse_failed", error);
+      return null;
+    }
+  };
+
+  const isPresetModelId = (modelId?: string) =>
+    modelId == "10001" ||
+    modelId == "10002" ||
+    modelId == "10003" ||
+    modelId == "10004";
+
+  const recoverTrainModelFromFlowMeta = async (meta: ITrainFlowMeta) => {
+    if (!meta.train_model_id) return false;
+    if (meta.model_md5) {
+      const { model_md5 } = await getModelInfo();
+      if (model_md5 && model_md5 === meta.model_md5) {
+        return true;
+      }
+    }
+
+    try {
+      setLoading(true);
+      setLoadingTip("Recovering model from train source");
+      const blob = await getModelApi(meta.train_model_id, {
+        task_id: meta.task_id ?? undefined,
+        device_type: meta.device_type ?? undefined,
+      });
+      const modelInfo = {
+        model_id: meta.train_model_id,
+        model_name: meta.model_name || meta.train_model_id,
+        ...(Array.isArray(meta.classes) ? { classes: meta.classes } : {}),
+      };
+      const formData = new FormData();
+      const fileName = (meta.model_name || meta.train_model_id)
+        .replace(/\.cvimodel$/i, "")
+        .concat(".cvimodel");
+      formData.append("model_file", blob, fileName);
+      formData.append("model_info", JSON.stringify(modelInfo));
+      const resp = await uploadModelApi(formData, (progress) => {
+        setLoadingTip(`Uploading model to reCamera: ${progress.toFixed(1)}%`);
+      });
+      const ret = resp.code == 0;
+      if (!ret) {
+        messageApi.error("Recover train model failed");
+      }
+      return ret;
+    } catch (error) {
+      console.error("Recover train model failed:", error);
+      messageApi.error("Recover train model failed");
+      return false;
+    } finally {
+      setLoading(false);
+      setLoadingTip("");
+    }
+  };
+
   //将云端模型上传到设备
   const uploadModel = async (model_data: IModelData) => {
     if (model_data) {
@@ -353,11 +438,7 @@ const Workspace = () => {
         }
       }
       //是否预置模型
-      const isPreset =
-        model_data.model_id == "10001" ||
-        model_data.model_id == "10002" ||
-        model_data.model_id == "10003" ||
-        model_data.model_id == "10004";
+      const isPreset = isPresetModelId(model_data.model_id);
 
       if (isPreset || url) {
         try {
@@ -816,8 +897,20 @@ const Workspace = () => {
         "Syncing SenseCraft Cloud application to Node-red. The flow will be automatically deploy on the device."
       );
       let ret = true;
+      const trainMeta = extractTrainMetaFromFlow(app?.flow_data);
       if (app?.model_data) {
-        ret = await uploadModel(app.model_data);
+        const hasCloudSource =
+          isPresetModelId(app.model_data.model_id) ||
+          Boolean(app.model_data.arguments?.url);
+        if (hasCloudSource) {
+          ret = await uploadModel(app.model_data);
+        } else if (trainMeta?.train_model_id) {
+          ret = await recoverTrainModelFromFlowMeta(trainMeta);
+        } else {
+          ret = false;
+        }
+      } else if (trainMeta?.train_model_id) {
+        ret = await recoverTrainModelFromFlowMeta(trainMeta);
       }
       if (ret) {
         await sendFlow(app?.flow_data);

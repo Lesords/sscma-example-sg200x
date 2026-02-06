@@ -29,6 +29,62 @@ interface RunTrainActionOptions {
   sendFlow: (flows?: string) => Promise<void>;
 }
 
+interface ITrainFlowMeta {
+  source: string;
+  train_model_id: string;
+  task_id: number | null;
+  device_type: number | null;
+  model_name: string;
+  model_md5?: string | null;
+  classes?: string[];
+}
+
+const TRAIN_META_NODE_NAME = "__train_meta__";
+
+const upsertTrainMetaIntoFlow = (
+  flowData: string,
+  meta: ITrainFlowMeta
+): string => {
+  try {
+    const nodes = JSON.parse(flowData);
+    if (!Array.isArray(nodes)) return flowData;
+
+    const tabId = nodes.find((n: Record<string, unknown>) => n.type === "tab")
+      ?.id as string | undefined;
+    if (!tabId) return flowData;
+
+    const metaInfo = JSON.stringify(meta);
+    const index = nodes.findIndex(
+      (n: Record<string, unknown>) =>
+        n.type === "comment" && n.name === TRAIN_META_NODE_NAME
+    );
+
+    if (index >= 0) {
+      nodes[index] = {
+        ...nodes[index],
+        z: tabId,
+        info: metaInfo,
+      };
+    } else {
+      nodes.push({
+        id: `train_meta_${Date.now().toString(36)}`,
+        type: "comment",
+        z: tabId,
+        name: TRAIN_META_NODE_NAME,
+        info: metaInfo,
+        x: 120,
+        y: 40,
+        wires: [],
+      });
+    }
+
+    return JSON.stringify(nodes);
+  } catch (error) {
+    console.warn("train:flow:meta_upsert_failed", error);
+    return flowData;
+  }
+};
+
 const reloadForTrainAction = (payload: TrainReplayAction) => {
   sessionStorage.setItem("sensecraft_action", JSON.stringify(payload));
   const url = new URL(window.location.href);
@@ -233,9 +289,11 @@ export const runTrainAction = async ({
     if (resp.code == 0) {
       messageApi.success("Model uploaded to device successfully");
       console.info("train:upload_model_success", { model_id: modelId });
+      let localModelMd5: string | null = null;
       try {
         const deviceInfoResp = await getModelInfoApi();
         console.info("train:device_model_info", deviceInfoResp);
+        localModelMd5 = deviceInfoResp?.data?.model_md5 || null;
       } catch (error) {
         console.warn("train:get_device_model_info failed", error);
       }
@@ -291,6 +349,15 @@ export const runTrainAction = async ({
           /\.cvimodel$/i,
           ""
         );
+        flowData = upsertTrainMetaIntoFlow(flowData, {
+          source: "sensecraft-train-v2",
+          train_model_id: modelId,
+          task_id: trainTaskId,
+          device_type: trainDeviceType,
+          model_name: resolvedModelName || modelId,
+          model_md5: localModelMd5,
+          classes: classesList || [],
+        });
         const ok = await createAppAndUpdateFlow({
           app_name: `classify_${appNameBase}`,
           flow_data: flowData,

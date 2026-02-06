@@ -1,63 +1,43 @@
-# Changelog (0.2.2 → feature/sensecraft-classify-dashboard)
+# Changelog (0.2.2 -> feature/sensecraft-classify-dashboard)
 
 ## English
 
 ### Added
-- `action=train` flow: fetch model info via train API v2, download model, upload to device, create cloud app, deploy dashboard flow, auto‑navigate to dashboard when ready.
-- Default dashboard flow moved to `src/utils/flowDefaults.ts` and re‑exported via `src/utils/index.ts`.
-- Train flow enhancements: device type guard, dashboard readiness polling, upload progress, slow‑upload warning, cancel upload (abort).
-- Train flow fallback: if cloud app creation fails, deploy flow directly to device.
-- Train flow adds Node-RED startup gating before flow deployment (`queryServiceStatusApi` polling).
-- Train failure fallback adds confirm dialog: reload and replay `action=train` from URL/session payload.
-- Train init action now passes `model_name` to avoid runtime errors.
-- `action=model` flow selection: use `DefaultFlowDataWithDashboard` when `task=classify` and `model_format=cvimodel`, otherwise use default flow; update `model` node fields before deploy.
-- App list UI fixes: overflow handling and tooltip for long names.
-- One‑click deploy script `scripts/deploy.sh`.
-- Train API v2 model info wrappers and types.
-- Workspace refactor: extracted flow lifecycle helpers to `src/views/workspace/services/flowService.ts` and extracted train orchestration to `src/views/workspace/services/trainActionService.tsx`.
+- `action=train` end-to-end flow: fetch model info (train API v2), download/upload model, create cloud app, deploy dashboard flow, and auto-redirect when ready.
+- Train robustness improvements: device type guard, upload progress/slow warning/cancel, Node-RED startup gating, dashboard readiness polling, and reload-and-replay confirm on failure.
+- Default dashboard flow extracted to `src/utils/flowDefaults.ts` (re-exported via `src/utils/index.ts`).
+- Workspace refactor: flow lifecycle helpers moved to `src/views/workspace/services/flowService.ts`; train orchestration moved to `src/views/workspace/services/trainActionService.tsx`.
+- One-click deploy script: `scripts/deploy.sh`.
 
 ### Changed
-- `action=train` now creates a cloud app (name `classify_<model>`), deploys flow, and redirects in‑tab to dashboard after readiness check.
-- `action=model` logs applyModel response and conditionally auto‑opens dashboard.
-- Redirect handling improved: `redirect_url` encoded; session action cached/cleaned to avoid accidental re‑runs.
-- `sensecraftRequest` refresh now retries on `code=401`.
-- `create_app` now truncates `app_name` to 64 chars with ellipsis to satisfy platform limits.
-- Default dashboard UI is responsive (auto-wraps long text, adaptive sizes, small-screen stacking).
+- `action=train` creates cloud app `classify_<model>`, deploys flow, and redirects in-tab to dashboard after readiness checks.
+- Train replay metadata is now embedded in Node-RED `flow_data` (`comment` node `__train_meta__`) instead of extending cloud `model_data` schema.
+- `action=model` selects dashboard flow only for `task=classify` + `model_format=cvimodel`, updates `model` node fields before deploy, and conditionally auto-opens dashboard.
+- Redirect/session handling improved (`redirect_url` encoding + action cache/cleanup); `sensecraftRequest` retries on `code=401` refresh path.
 
 ### Fixed
-- App name overflow no longer hides edit/delete buttons.
-- Upload flow provides progress, warning, and cancel option.
-- Dashboard jump uses current tab with readiness gating.
-- `sendFlow` no longer silently succeeds when Node-RED `/flows` rejects writes (`revision` empty now treated as failure).
-- On flow deployment failure, workspace can prompt user to reload and retry.
+- `sendFlow` no longer silently succeeds when Node-RED `/flows` rejects writes (`revision` empty is treated as failure).
+- Flow deploy failures can prompt reload/retry.
+- App switching can recover train-delivered models without cloud model URL by parsing `__train_meta__` and replaying train download/upload.
+- UI polish: app name overflow no longer hides edit/delete buttons; dashboard layout is responsive.
 
 ## 中文
 
 ### 新增
-- `action=train` 全流程：训练平台 v2 取模型信息 → 下载 → 上传设备 → 创建云端应用 → 部署 Dashboard Flow → 就绪后自动跳转。
-- 默认 Dashboard Flow 拆分至 `src/utils/flowDefaults.ts`，由 `src/utils/index.ts` 重新导出。
-- 训练流程增强：设备类型校验、Dashboard 就绪轮询、上传进度提示、慢上传提醒、支持取消上传。
-- 训练流程兜底：云端应用创建失败时，直接下发 Flow 到设备。
-- 训练流程新增 Node-RED 启动就绪门控（轮询 `queryServiceStatusApi` 后再下发 Flow）。
-- 训练流程失败新增确认框：支持重载并重放 `action=train`。
-- 训练流程初始化补充 `model_name`，避免运行时错误。
-- `action=model` 按 `task=classify` 且 `model_format=cvimodel` 选择 Dashboard Flow，否则使用默认 Flow；部署前更新 `model` 节点字段。
-- 应用列表 UI 修复：长名称溢出处理 + Tooltip。
-- 一键部署脚本 `scripts/deploy.sh`。
-- 训练平台 v2 模型信息接口封装与类型补齐。
-- Workspace 重构：Flow 生命周期能力拆分到 `src/views/workspace/services/flowService.ts`，`train` 编排拆分到 `src/views/workspace/services/trainActionService.tsx`。
+- `action=train` 全流程：训练平台 v2 获取模型信息、下载并上传设备、创建云端应用、部署 Dashboard Flow，并在就绪后自动跳转。
+- 训练流程稳健性增强：设备类型校验、上传进度/慢上传提醒/取消上传、Node-RED 启动门控、Dashboard 就绪轮询、失败后重载重放确认。
+- 默认 Dashboard Flow 拆分到 `src/utils/flowDefaults.ts`（由 `src/utils/index.ts` 重新导出）。
+- Workspace 重构：Flow 生命周期能力迁移到 `src/views/workspace/services/flowService.ts`，`train` 编排迁移到 `src/views/workspace/services/trainActionService.tsx`。
+- 一键部署脚本：`scripts/deploy.sh`。
 
 ### 变更
-- `action=train` 改为创建云端应用（`classify_<model>`），部署后在当前页跳转 Dashboard。
-- `action=model` 增加 applyModel 响应日志并条件跳转 Dashboard。
-- 授权回跳处理优化：`redirect_url` 编码；`sessionStorage` 缓存/清理 action，避免误触发。
-- `sensecraftRequest` 对 `code=401` 也触发刷新 token 并重试。
-- `create_app` 的 `app_name` 超 64 字符时自动截断并追加省略号。
-- 默认 Dashboard UI 自适应：长文本自动换行、字号随屏幕变化，小屏单列布局。
+- `action=train` 改为创建云端应用 `classify_<model>`，完成下发后基于就绪检测在当前页跳转 Dashboard。
+- 训练回放元数据改为写入 Node-RED `flow_data`（`comment` 节点 `__train_meta__`），不扩展云端 `model_data` 协议。
+- `action=model` 仅在 `task=classify` 且 `model_format=cvimodel` 时使用 Dashboard Flow，部署前更新 `model` 节点字段，并按条件自动跳转 Dashboard。
+- 跳转与会话处理优化（`redirect_url` 编码 + action 缓存/清理）；`sensecraftRequest` 在 `code=401` 刷新链路可重试。
 
 ### 修复
-- 长应用名不再遮挡编辑/删除按钮。
-- 上传过程提供进度、超时提醒与取消入口。
-- Dashboard 跳转改为当前页，并基于就绪检测。
 - `sendFlow` 对 Node-RED `/flows` 写入失败不再静默成功（`revision` 为空视为失败）。
-- Flow 下发失败场景支持提示用户重载并重试。
+- Flow 下发失败可提示重载并重试。
+- 应用切换时，若云端无模型下载地址，可从 `__train_meta__` 回放下载/上传 train 模型。
+- UI 细节修复：长应用名不再遮挡编辑/删除按钮，Dashboard 布局保持响应式。

@@ -30,7 +30,6 @@ interface IChannelParams {
 }
 
 interface IServiceStatus {
-  sscmaNode: ServiceStatus;
   nodeRed: ServiceStatus;
   system: ServiceStatus;
   uptime: number;

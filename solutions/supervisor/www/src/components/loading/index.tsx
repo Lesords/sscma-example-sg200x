@@ -35,9 +35,8 @@ const Loading = ({
       try {
         const response = await queryServiceStatusApi();
         if (response.code === 0 && response.data) {
-          const { sscmaNode, nodeRed, system, uptime = 0 } = response.data;
+          const { nodeRed, system, uptime = 0 } = response.data;
           if (
-            sscmaNode === ServiceStatus.RUNNING &&
             nodeRed === ServiceStatus.RUNNING &&
             system === ServiceStatus.RUNNING
           ) {

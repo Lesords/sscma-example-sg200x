@@ -629,15 +629,6 @@ function forgetWiFi() {
 
 ##################################################
 # deamon
-function query_sscma() {
-    mosquitto_rr -h localhost -p 1883 -q 1 -v -W 3 \
-        -t "sscma/v0/recamera/node/in/" \
-        -e "sscma/v0/recamera/node/out/" \
-        -m "{\"name\":\"health\",\"type\":3,\"data\":\"\"}" 2>/dev/null
-    [ $? -ne 0 ] && { echo "$STR_FAILED"; }
-    return 0
-}
-
 function query_nodered() {
     local result="$(curl -I --connect-timeout 2 --max-time 10 "localhost:1880" 2>/dev/null)"
     [ -z "$result" ] && {
@@ -664,16 +655,7 @@ function ctrl_flow() {
 function start_service() {
     local service="$2"
     case "$service" in
-    "sscma")
-        /etc/init.d/S91sscma-node restart >/dev/null 2>&1
-        [ $? -ne 0 ] && {
-            echo "$STR_FAILED"
-            return
-        }
-        echo "$STR_OK"
-        ;;
     "nodered")
-        _stop_pidname "sscma-node" 1
         _stop_pidname "node"
         /etc/init.d/S03node-red restart >/dev/null 2>&1
         [ $? -ne 0 ] && {

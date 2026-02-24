@@ -28,7 +28,6 @@ public:
         LOGV("");
         thread_ = std::thread([this]() {
             bool sys_booting = true;
-            bool restart_flow = false;
             uint32_t nodered_failed = 0;
 
             running_ = true;
@@ -38,8 +37,7 @@ public:
                     break;
                 }
                 query_nodered();
-                query_sscma();
-                LOGV("nodered_status_=%d, sscma_status_=%d", nodered_status_, sscma_status_);
+                LOGV("nodered_status_=%d", nodered_status_);
 
                 if (sys_booting && (api_base::uptime() < 2 * 60 * 1000)) {
                     continue;
@@ -57,18 +55,6 @@ public:
                     continue;
                 }
                 nodered_failed = 0;
-
-                if (sscma_status_ != STATUS_NORMAL) {
-                    start_service("sscma");
-                    restart_flow = true;
-                    continue; // To check sscma ready
-                }
-                if (restart_flow) {
-                    LOGW("Restart flow");
-                    api_base::script("ctrl_flow", "stop");
-                    api_base::script("ctrl_flow", "start");
-                    restart_flow = false;
-                }
             }
             LOGV("serviced thread exit");
         });
@@ -84,7 +70,6 @@ public:
         LOGV("");
     }
 
-    status_t get_sscma_status() { return sscma_status_; }
     status_t get_nodered_status() { return nodered_status_; }
     // status_t get_flow_status() { return flow_status_; }
 
@@ -94,19 +79,8 @@ private:
     std::mutex mutex_;
     std::condition_variable cv_;
 
-    status_t sscma_status_ = STATUS_UNKOWN;
     status_t nodered_status_ = STATUS_UNKOWN;
     // status_t flow_status_ = STATUS_UNKOWN;
-
-    void query_sscma()
-    {
-        sscma_status_ = STATUS_NORMAL;
-        std::string result = api_base::script(__func__);
-        if (result.empty() || (result == "Timed out") || (result == "Failed")) {
-            sscma_status_ = STATUS_FAILED;
-            return;
-        }
-    }
 
     // void query_flow()
     // {

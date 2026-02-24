@@ -118,6 +118,14 @@ const Workspace = () => {
   const [activeTab, setActiveTab] = useState<string>("application");
   const uploadAbortRef = useRef<AbortController | null>(null);
 
+  const navigateToDashboardInTab = (ip: string) => {
+    if (window.location.hostname === ip) {
+      window.location.hash = "/dashboard";
+      return;
+    }
+    window.location.href = `http://${ip}/#/dashboard`;
+  };
+
   const confirmPageReloadOnFlowFailed = async (reason: string) => {
     const confirmed = await modal.confirm({
       title: "Flow deploy failed",
@@ -193,7 +201,7 @@ const Workspace = () => {
             from: currentUrl,
             to: newUrl,
           });
-          window.location.href = newUrl;
+          window.history.replaceState(null, "", newUrl);
         }
       } else {
         console.info("initPlatform:auth:cached_or_existing", {
@@ -694,12 +702,15 @@ const Workspace = () => {
               const ready = await waitForDashboardReady(deviceInfo.ip);
               if (ready) {
                 sessionStorage.removeItem("sensecraft_action");
-                const targetUrl = `http://${deviceInfo.ip}/#/dashboard`;
+                const targetUrl =
+                  window.location.hostname === deviceInfo.ip
+                    ? `${window.location.origin}${window.location.pathname}#/dashboard`
+                    : `http://${deviceInfo.ip}/#/dashboard`;
                 console.info("model:redirect:dashboard", {
                   from: window.location.href,
                   to: targetUrl,
                 });
-                window.location.href = targetUrl;
+                navigateToDashboardInTab(deviceInfo.ip);
               } else {
                 messageApi.warning("Dashboard not ready yet");
               }

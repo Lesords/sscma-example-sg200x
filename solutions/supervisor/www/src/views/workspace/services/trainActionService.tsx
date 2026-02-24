@@ -97,6 +97,14 @@ const reloadForTrainAction = (payload: TrainReplayAction) => {
   window.location.href = url.toString();
 };
 
+const navigateToDashboardInTab = (ip: string) => {
+  if (window.location.hostname === ip) {
+    window.location.hash = "/dashboard";
+    return;
+  }
+  window.location.href = `http://${ip}/#/dashboard`;
+};
+
 const confirmTrainReload = async (
   modal: ReturnType<typeof Modal.useModal>[0],
   reason: string,
@@ -395,12 +403,15 @@ export const runTrainAction = async ({
           console.info("train:step:wait_dashboard:done", { ready });
           if (ready) {
             sessionStorage.removeItem("sensecraft_action");
-            const targetUrl = `http://${deviceIp}/#/dashboard`;
+            const targetUrl =
+              window.location.hostname === deviceIp
+                ? `${window.location.origin}${window.location.pathname}#/dashboard`
+                : `http://${deviceIp}/#/dashboard`;
             console.info("train:redirect:dashboard", {
               from: window.location.href,
               to: targetUrl,
             });
-            window.location.href = targetUrl;
+            navigateToDashboardInTab(deviceIp);
           } else {
             const shouldReload = await confirmTrainReload(
               modal,

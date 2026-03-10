@@ -8,12 +8,24 @@
 
 ```json
 {
-  "type": "<消息类别枚举，如主动事件(EVT)为2，被动响应(RESP)为1>",
+  "type": "<消息类别枚举，如主动事件(EVT)为1，被动响应(RESP)为0>",
   "name": "<具体的事件名称或动作名称>",
   "code": "<状态码，如 MA_OK(0) 代表成功，非0代表错误>",
   "data": "<实际承载的负载数据，格式视 name 而变>"
 }
 ```
+
+### type 字段说明
+
+| 值 | 常量名 | 说明 |
+|---|--------|------|
+| 0 | MA_MSG_TYPE_RESP | 响应消息 (RESP) - 被动回复 |
+| 1 | MA_MSG_TYPE_EVT | 事件消息 (EVT) - 主动上报 |
+| 2 | MA_MSG_TYPE_LOG | 日志消息 (LOG) |
+| 3 | MA_MSG_TYPE_REQ | 请求消息 (REQ) |
+| 4 | MA_MSG_TYPE_HB | 心跳消息 (HB) |
+
+> **注意**：前端代码通常不依赖 `type` 字段来判断消息类型，而是直接使用 `data` 字段的内容或 `name` 字段来区分不同的消息。
 
 ---
 
@@ -25,7 +37,7 @@
 
 ```json
 {
-  "type": 2, 
+  "type": 1,
   "name": "invoke",
   "code": 0,
   "data": {
@@ -62,7 +74,7 @@
 
 ```json
 {
-  "type": 1,
+  "type": 0,
   "name": "create",
   "code": 0,
   "data": {
@@ -84,7 +96,7 @@
 
 ```json
 {
-  "type": 1,
+  "type": 0,
   "name": "enabled",
   "code": 0,
   "data": true   // true 为正在运行，false 为挂起休眠状态
@@ -102,7 +114,7 @@
 
 ```json
 {
-  "type": 1,
+  "type": 0,
   "name": "config",
   "code": 0,
   "data": {
@@ -116,7 +128,7 @@
 
 ---
 
-## 5. 指令不支持错误 (`code: -3 / MA_ENOTSUP`)
+## 5. 指令不支持错误 (`code: 8 / MA_ENOTSUP`)
 
 * **发送方式**：错误提示
 * **触发时机**：如果接收到未知的控制动作（未命中的 control 字符串）。
@@ -124,9 +136,9 @@
 
 ```json
 {
-  "type": 1,
+  "type": 0,
   "name": "<用户传入的未知命令名称>",
-  "code": -3,
+  "code": 8,
   "data": "Not supported"
 }
 ```
@@ -167,7 +179,7 @@
 * **输出确认格式 (后端回复)**：
 ```json
 {
-  "type": 1,
+  "type": 0,
   "name": "destroy",
   "code": 0,    // 返回 MA_OK 代表销毁成功
   "data": ""
@@ -189,7 +201,7 @@
 * **输出确认格式 (后端回复)**：
 ```json
 {
-  "type": 1,
+  "type": 0,
   "name": "clear",
   "code": 0,
   "data": ""
@@ -236,7 +248,7 @@
 * **数据格式**：
 ```json
 {
-  "type": 1,
+  "type": 0,
   "name": "create",
   "code": 0,
   "data": {
@@ -254,7 +266,7 @@
 * **数据格式**：
 ```json
 {
-  "type": 1,
+  "type": 0,
   "name": "enabled",
   "code": 0,
   "data": true   // true 表示底层视频流已唤醒并源源不断接收入口帧，false 表示挂机/停止信号
@@ -268,7 +280,7 @@
 * **数据格式**：
 ```json
 {
-  "type": 1,
+  "type": 0,
   "name": "light",  // 或者是针对预览开关的 "preview"
   "code": 0,
   "data": {
@@ -284,7 +296,7 @@
 * **数据格式**：
 ```json
 {
-  "type": 2, 
+  "type": 1,
   "name": "sample",
   "code": 0,
   "data": {
@@ -307,7 +319,7 @@
 * **数据格式**：
 ```json
 {
-  "type": 1,
+  "type": 0,
   "name": "create",
   "code": 0,
   "data": {
@@ -326,7 +338,7 @@
 * **数据格式**：
 ```json
 {
-  "type": 1,
+  "type": 0,
   "name": "enabled",
   "code": 0,
   "data": true   // true 表示模型正在不断 fetch() 获取图像并进行 AI 推理，false 表示在 while 循环中空转待机
@@ -340,7 +352,7 @@
 * **数据格式**：
 ```json
 {
-  "type": 1,
+  "type": 0,
   "name": "config",
   "code": 0,
   "data": {          // 这里的 data 会直接回显收到的那些配置改动项，表示修改成功
